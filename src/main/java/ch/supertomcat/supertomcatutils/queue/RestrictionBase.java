@@ -1,4 +1,4 @@
-package ch.supertomcat.suportomcatutils.queue;
+package ch.supertomcat.supertomcatutils.queue;
 
 /**
  * Base class for Restriction

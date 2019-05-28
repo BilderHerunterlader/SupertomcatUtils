@@ -1,4 +1,4 @@
-package ch.supertomcat.suportomcatutils.queue;
+package ch.supertomcat.supertomcatutils.queue;
 
 import java.util.ArrayList;
 import java.util.Comparator;

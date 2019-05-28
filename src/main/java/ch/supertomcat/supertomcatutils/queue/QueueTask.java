@@ -1,4 +1,4 @@
-package ch.supertomcat.suportomcatutils.queue;
+package ch.supertomcat.supertomcatutils.queue;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
