@@ -11,7 +11,7 @@ public class SettingsUtil {
 	 * @param strValue Value as String
 	 * @return Parsed Value
 	 */
-	protected static Object parseValue(String dataType, String strValue) {
+	public static Object parseValue(String dataType, String strValue) {
 		if (dataType.equals("boolean")) {
 			return parseBooleanValue(strValue, false);
 		} else if (dataType.equals("int")) {
@@ -38,7 +38,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static int parseIntValue(String value, int defVal) {
+	public static int parseIntValue(String value, int defVal) {
 		if (value == null) {
 			return defVal;
 		}
@@ -54,7 +54,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static long parseLongValue(String value, long defVal) {
+	public static long parseLongValue(String value, long defVal) {
 		if (value == null) {
 			return defVal;
 		}
@@ -70,7 +70,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static boolean parseBooleanValue(String value, boolean defVal) {
+	public static boolean parseBooleanValue(String value, boolean defVal) {
 		if (value == null) {
 			return defVal;
 		}
@@ -82,7 +82,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static short parseShortValue(String value, short defVal) {
+	public static short parseShortValue(String value, short defVal) {
 		if (value == null) {
 			return defVal;
 		}
@@ -98,7 +98,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static byte parseByteValue(String value, byte defVal) {
+	public static byte parseByteValue(String value, byte defVal) {
 		if (value == null) {
 			return defVal;
 		}
@@ -114,7 +114,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static float parseFloatValue(String value, float defVal) {
+	public static float parseFloatValue(String value, float defVal) {
 		if (value == null) {
 			return defVal;
 		}
@@ -130,7 +130,7 @@ public class SettingsUtil {
 	 * @param defVal Standard-Wert
 	 * @return Wert
 	 */
-	protected static double parseDoubleValue(String value, double defVal) {
+	public static double parseDoubleValue(String value, double defVal) {
 		if (value == null) {
 			return defVal;
 		}
