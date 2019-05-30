@@ -31,7 +31,7 @@ import ch.supertomcat.supertomcatutils.io.CopyUtil;
  * @param <T> Settings JAXB Type
  * @param <L> Settings Listener Type
  */
-public class SettingsManagerBase<T, L extends SettingsListener> {
+public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	/**
 	 * Logger for this class
 	 */
