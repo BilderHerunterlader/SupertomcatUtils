@@ -1,5 +1,6 @@
 package ch.supertomcat.supertomcatutils.application;
 
+import java.awt.Image;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
@@ -7,7 +8,9 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.channels.FileLock;
 import java.text.DateFormat;
@@ -17,6 +20,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.JFrame;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -360,5 +365,44 @@ public final class ApplicationUtil {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Create invisible frame, which can be used as parent for JOptionPane dialogs, so that the message is displayed in the taskbar
+	 * 
+	 * @param title Window Title
+	 * @return Invisible Frame
+	 */
+	public static JFrame createInvisibleFrame(String title) {
+		return createInvisibleFrame(title, null);
+	}
+
+	/**
+	 * Create invisible frame, which can be used as parent for JOptionPane dialogs, so that the message is displayed in the taskbar
+	 * 
+	 * @param title Window Title
+	 * @param icon Icon
+	 * @return Invisible Frame
+	 */
+	public static JFrame createInvisibleFrame(String title, Image icon) {
+		JFrame frame = new JFrame(title);
+		frame.setIconImage(icon);
+		frame.setUndecorated(true);
+		frame.setVisible(true);
+		frame.setLocationRelativeTo(null);
+		return frame;
+	}
+
+	/**
+	 * Format Stacktrace to String
+	 * 
+	 * @param throwable Throwable
+	 * @return Stacktrace as String
+	 */
+	public static String formatStackTrace(Throwable throwable) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw, true);
+		throwable.printStackTrace(pw);
+		return sw.getBuffer().toString();
 	}
 }
