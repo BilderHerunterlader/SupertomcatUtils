@@ -141,6 +141,9 @@ public abstract class ApplicationMain {
 
 		// Delete old log files
 		deleteOldLogFiles();
+
+		// Call program specific startup
+		main(args);
 	}
 
 	/**
