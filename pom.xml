@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.bilderherunterlader</groupId>
 	<artifactId>supertomcatutils</artifactId>
-	<version>1.0.5-SNAPSHOT</version>
+	<version>1.0.5</version>
 	<name>SupertomcatUtils</name>
 	<description>Library which provides common code used by BilderHerunterlader and BilderUploader</description>
 	<url>https://github.com/BilderHerunterlader/SupertomcatUtils</url>
@@ -182,7 +182,7 @@
 		<url>https://github.com/BilderHerunterlader/SupertomcatUtils.git</url>
 		<connection>scm:git:https://github.com/BilderHerunterlader/SupertomcatUtils.git</connection>
 		<developerConnection>scm:git:https://github.com/BilderHerunterlader/SupertomcatUtils.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>supertomcatutils-1.0.5</tag>
 	</scm>
 	<distributionManagement>
 		<snapshotRepository>
