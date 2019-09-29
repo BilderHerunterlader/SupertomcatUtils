@@ -13,9 +13,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +62,11 @@ public abstract class ApplicationMain {
 	 * Paths which can be overridden by directories.properties
 	 */
 	protected final Set<String> overwritablePaths = new LinkedHashSet<>();
+
+	/**
+	 * Shutdown Hook Threads
+	 */
+	protected final List<Thread> shutdownHookThreads = new CopyOnWriteArrayList<>();
 
 	/**
 	 * Constructor
@@ -141,6 +149,11 @@ public abstract class ApplicationMain {
 
 		// Delete old log files
 		deleteOldLogFiles();
+
+		// Set System LookAndFeel
+		if (gui) {
+			setSystemLookAndFeel();
+		}
 
 		// Call program specific startup
 		main(args);
@@ -450,6 +463,87 @@ public abstract class ApplicationMain {
 	protected void deleteOldLogFiles() {
 		String logFilename = ApplicationProperties.getProperty("ApplicationShortName") + ".log";
 		ApplicationUtil.deleteOldLogFiles(7, logFilename, ApplicationProperties.getProperty("LogsPath"));
+	}
+
+	/**
+	 * Change Look and Feel to System LookAndFeel
+	 * 
+	 * @return True if successfull, false otherwise
+	 */
+	protected boolean setSystemLookAndFeel() {
+		return changeLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	}
+
+	/**
+	 * Change Look and Feel
+	 * 
+	 * @param lookAndFeelClassName LookAndFeel Class Name
+	 * @return True if successfull, false otherwise
+	 */
+	protected boolean changeLookAndFeel(String lookAndFeelClassName) {
+		try {
+			UIManager.setLookAndFeel(lookAndFeelClassName);
+			return true;
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+			LoggerFactory.getLogger(getClass()).error("Could not set look and feel: {}", lookAndFeelClassName, e);
+			return false;
+		}
+	}
+
+	/**
+	 * Add Default Shutdown Hook, which will call the {@link #shutdownHookExit()}
+	 * method.
+	 */
+	protected void addDefaultShutdownHook() {
+		// Create and register the Shutdown-Thread
+		Thread shutdownThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				shutdownHookExit();
+			}
+		});
+		shutdownThread.setName("Shutdown-Thread-" + shutdownThread.getId());
+		addShutdownHook(shutdownThread);
+	}
+
+	/**
+	 * Method which is called when default shutdown hook was added with {@link #addDefaultShutdownHook}. By default this method calls the {@link #exit()}
+	 * method.
+	 */
+	protected void shutdownHookExit() {
+		exit();
+	}
+
+	/**
+	 * Add Shutdown Hook
+	 * 
+	 * @param shutdownHookThread Shutdown Hook Thread
+	 */
+	protected void addShutdownHook(Thread shutdownHookThread) {
+		Runtime.getRuntime().addShutdownHook(shutdownHookThread);
+		if (!shutdownHookThreads.contains(shutdownHookThread)) {
+			shutdownHookThreads.add(shutdownHookThread);
+		}
+	}
+
+	/**
+	 * Remove Shutdown Hook
+	 * 
+	 * @param shutdownHookThread Shutdown Hook Thread
+	 */
+	protected void removeShutdownHook(Thread shutdownHookThread) {
+		Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
+		shutdownHookThreads.remove(shutdownHookThread);
+	}
+
+	/**
+	 * Remove All Shutdown Hooks (which were previously added with {@link #addShutdownHook(Thread)}
+	 */
+	protected void removeAllShutdownHooks() {
+		for (Thread shutdownHookThread : shutdownHookThreads) {
+			Runtime.getRuntime().removeShutdownHook(shutdownHookThread);
+		}
+		shutdownHookThreads.clear();
 	}
 
 	/**
