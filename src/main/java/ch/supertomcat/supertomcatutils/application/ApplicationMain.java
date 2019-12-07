@@ -7,7 +7,6 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -224,20 +223,24 @@ public abstract class ApplicationMain {
 				File fJreJavaw = new File(os.contains("windows") ? jreJavaw + ".exe" : jreJavaw);
 				File fJreJava = new File(os.contains("windows") ? jreJava + ".exe" : jreJava);
 
+				List<String> arguments = new ArrayList<>();
+
 				if (fJreJavaw.exists()) {
-					jre = "\"" + jreJavaw + "\" -jar \"" + applicationAbsolutePath + ApplicationProperties.getProperty("JarFilename") + "\"";
+					arguments.add(jreJavaw);
 				} else {
 					if (fJreJava.exists()) {
-						jre = "\"" + jreJava + "\" -jar \"" + applicationAbsolutePath + ApplicationProperties.getProperty("JarFilename") + "\"";
+						arguments.add(jreJavaw);
 					}
 				}
 
-				if (jre.isEmpty()) {
+				if (arguments.isEmpty()) {
 					return false;
 				}
 
-				List<String> lProcess = new ArrayList<>(Arrays.asList(jre.split(" ")));
-				new ProcessBuilder(lProcess).start();
+				arguments.add("-jar");
+				arguments.add(applicationAbsolutePath + ApplicationProperties.getProperty("JarFilename"));
+
+				new ProcessBuilder(arguments).start();
 
 				try {
 					Thread.sleep(2000);
