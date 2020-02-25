@@ -214,7 +214,6 @@ public abstract class ApplicationMain {
 					applicationAbsolutePath += FileUtil.FILE_SEPERATOR;
 				}
 
-				String jre = "";
 				String jreJavaw = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR + "javaw";
 				String jreJava = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR + "java";
 
@@ -229,7 +228,7 @@ public abstract class ApplicationMain {
 					arguments.add(jreJavaw);
 				} else {
 					if (fJreJava.exists()) {
-						arguments.add(jreJavaw);
+						arguments.add(jreJava);
 					}
 				}
 
