@@ -138,7 +138,7 @@ public abstract class QueueManagerBase<T, R> {
 				entry.getValue().set(0);
 			}
 
-			threadPool = (ThreadPoolExecutor)Executors.newCachedThreadPool(new QueueManagerBaseThreadFactory("BaseQueueThread"));
+			threadPool = (ThreadPoolExecutor)Executors.newCachedThreadPool(new QueueManagerBaseThreadFactory("BaseQueueThread-"));
 			completionService = new ExecutorCompletionService<>(threadPool);
 			applyMaxConnectionCount();
 		}
@@ -582,7 +582,7 @@ public abstract class QueueManagerBase<T, R> {
 		public void run() {
 			while (!stop) {
 				synchronized (syncObject) {
-					while (executingTasks.size() >= maxConnectionCount) {
+					while (queue.isEmpty() || executingTasks.size() >= maxConnectionCount) {
 						try {
 							syncObject.wait();
 						} catch (InterruptedException e) {
