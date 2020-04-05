@@ -128,6 +128,21 @@ public final class ImageUtil {
 	 * @return Scaled Image
 	 */
 	public static BufferedImage generatePreviewImage(Image img, int width, int height, int hints) {
+		return generatePreviewImage(img, width, height, hints, BufferedImage.TYPE_INT_RGB);
+	}
+
+	/**
+	 * Generates a preview for the given Image
+	 * To preverse aspect ratio, you can set width to -1 and set height or the other way around
+	 * 
+	 * @param img Original Image
+	 * @param width Width
+	 * @param height Height
+	 * @param hints Hints
+	 * @param type Image Type
+	 * @return Scaled Image
+	 */
+	public static BufferedImage generatePreviewImage(Image img, int width, int height, int hints, int type) {
 		Dimension dim = waitForImageDimension(img);
 		int origWidth = dim.width;
 		int origHeight = dim.height;
@@ -148,7 +163,7 @@ public final class ImageUtil {
 			return (BufferedImage)imgScaled;
 		}
 
-		BufferedImage imgScaledBuffered = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage imgScaledBuffered = new BufferedImage(newWidth, newHeight, type);
 		Graphics2D bGr = imgScaledBuffered.createGraphics();
 		bGr.drawImage(imgScaled, 0, 0, null);
 		bGr.dispose();
