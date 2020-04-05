@@ -43,12 +43,17 @@ public class TableColumHiderSizeBasedImpl implements TableColumnHider {
 			tableColumnRestoreData.setMinWidth(tableColumn.getMinWidth());
 			tableColumnRestoreData.setMaxWidth(tableColumn.getMaxWidth());
 			tableColumnRestoreData.setWidth(tableColumn.getWidth());
+			tableColumnRestoreData.setPreferredWidth(tableColumn.getPreferredWidth());
 		}
 
 		tableColumnRestoreData.setHidden(true);
 
+		// Set Min Width first
 		tableColumn.setMinWidth(0);
+		// Set Max Width second
 		tableColumn.setMaxWidth(0);
+		// Now width and preferred width can be set
+		tableColumn.setPreferredWidth(0);
 		tableColumn.setWidth(0);
 	}
 
@@ -62,8 +67,12 @@ public class TableColumHiderSizeBasedImpl implements TableColumnHider {
 		tableColumnRestoreData.setHidden(false);
 
 		TableColumn tableColumn = table.getColumn(identifier);
-		tableColumn.setMinWidth(tableColumnRestoreData.getMinWidth());
+		// Set Max Width first
 		tableColumn.setMaxWidth(tableColumnRestoreData.getMaxWidth());
+		// Set Min Width second
+		tableColumn.setMinWidth(tableColumnRestoreData.getMinWidth());
+		// Now width and preferred width can be set
+		tableColumn.setPreferredWidth(tableColumnRestoreData.getPreferredWidth());
 		tableColumn.setWidth(tableColumnRestoreData.getWidth());
 	}
 
@@ -85,6 +94,11 @@ public class TableColumHiderSizeBasedImpl implements TableColumnHider {
 		 * Maximum Width
 		 */
 		private int maxWidth;
+
+		/**
+		 * PreferredWidth
+		 */
+		private int preferredWidth;
 
 		/**
 		 * Hidden
@@ -149,6 +163,24 @@ public class TableColumHiderSizeBasedImpl implements TableColumnHider {
 		 */
 		public void setMaxWidth(int maxWidth) {
 			this.maxWidth = maxWidth;
+		}
+
+		/**
+		 * Returns the preferredWidth
+		 * 
+		 * @return preferredWidth
+		 */
+		public int getPreferredWidth() {
+			return preferredWidth;
+		}
+
+		/**
+		 * Sets the preferredWidth
+		 * 
+		 * @param preferredWidth preferredWidth
+		 */
+		public void setPreferredWidth(int preferredWidth) {
+			this.preferredWidth = preferredWidth;
 		}
 
 		/**
