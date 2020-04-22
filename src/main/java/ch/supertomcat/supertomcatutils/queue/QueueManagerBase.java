@@ -542,8 +542,8 @@ public abstract class QueueManagerBase<T, R> {
 			}
 		}
 
-		boolean executable1 = count1 < max1;
-		boolean executable2 = count2 < max2;
+		boolean executable1 = max1 <= 0 || count1 < max1;
+		boolean executable2 = max2 <= 0 || count2 < max2;
 
 		if (executable1 && executable2) {
 			return 0;
@@ -566,7 +566,7 @@ public abstract class QueueManagerBase<T, R> {
 		Restriction restriction = getRestrictionForTask(task);
 		int max = restriction.getMaxConnectionCount();
 		synchronized (syncObject) {
-			if (max == 0 || max > maxConnectionCountPerHost) {
+			if (max <= 0 || max > maxConnectionCountPerHost) {
 				max = maxConnectionCountPerHost;
 			}
 		}
@@ -608,7 +608,7 @@ public abstract class QueueManagerBase<T, R> {
 
 					int currentCountPerHost = count.get();
 					int maxCountPerHost = getMaxConnectionCount(task);
-					if (currentCountPerHost >= maxCountPerHost) {
+					if (maxCountPerHost > 0 && currentCountPerHost >= maxCountPerHost) {
 						/*
 						 * No more connections allowed for this host, so put task back into queue
 						 */
