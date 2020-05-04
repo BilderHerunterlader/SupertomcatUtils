@@ -1,12 +1,10 @@
 package ch.supertomcat.supertomcatutils.queue;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
@@ -41,7 +39,7 @@ public abstract class QueueManagerBase<T, R> {
 	/**
 	 * Queue
 	 */
-	protected final PriorityQueue<T> queue;
+	protected final List<T> queue = new ArrayList<>();
 
 	/**
 	 * Queue Task Factory
@@ -52,6 +50,11 @@ public abstract class QueueManagerBase<T, R> {
 	 * Tasks which are currently executing
 	 */
 	protected final List<QueueTask<T, R>> executingTasks = new ArrayList<>();
+
+	/**
+	 * Flag for indicating that it should be checked if any tasks from the queue can be executed
+	 */
+	protected boolean checkScheduleTasks = true;
 
 	/**
 	 * Counters to handle max connections per host
@@ -120,7 +123,6 @@ public abstract class QueueManagerBase<T, R> {
 		this.maxConnectionCount = maxConnectionCount;
 		this.maxConnectionCountPerHost = maxConnectionCountPerHost;
 		this.openSlots = maxConnectionCount;
-		this.queue = new PriorityQueue<>(new PriorityQueueComparator());
 	}
 
 	/**
@@ -133,6 +135,7 @@ public abstract class QueueManagerBase<T, R> {
 
 		synchronized (syncObject) {
 			stop = false;
+			checkScheduleTasks = true;
 
 			for (Map.Entry<String, AtomicInteger> entry : counters.entrySet()) {
 				entry.getValue().set(0);
@@ -166,6 +169,7 @@ public abstract class QueueManagerBase<T, R> {
 
 			threadPool.shutdownNow();
 
+			checkScheduleTasks = true;
 			syncObject.notifyAll();
 		}
 
@@ -211,6 +215,7 @@ public abstract class QueueManagerBase<T, R> {
 				cancelTaskCallables(true);
 			}
 
+			checkScheduleTasks = true;
 			syncObject.notifyAll();
 		}
 	}
@@ -356,6 +361,7 @@ public abstract class QueueManagerBase<T, R> {
 		synchronized (syncObject) {
 			if (!queue.contains(task)) {
 				queue.add(task);
+				checkScheduleTasks = true;
 				syncObject.notifyAll();
 			}
 		}
@@ -373,6 +379,7 @@ public abstract class QueueManagerBase<T, R> {
 					queue.add(task);
 				}
 			}
+			checkScheduleTasks = true;
 			syncObject.notifyAll();
 		}
 	}
@@ -436,6 +443,7 @@ public abstract class QueueManagerBase<T, R> {
 
 			updateOpenSlots();
 
+			checkScheduleTasks = true;
 			syncObject.notifyAll();
 		}
 	}
@@ -477,6 +485,7 @@ public abstract class QueueManagerBase<T, R> {
 
 			updateOpenSlots();
 
+			checkScheduleTasks = true;
 			syncObject.notifyAll();
 		}
 	}
@@ -511,52 +520,6 @@ public abstract class QueueManagerBase<T, R> {
 	}
 
 	/**
-	 * Compare tasks for Priority Queue
-	 * 
-	 * @param t1 Task 1
-	 * @param t2 Task 2
-	 * @return Comparison
-	 */
-	protected int compareTasks(T t1, T t2) {
-		Restriction restriction1 = getRestrictionForTask(t1);
-		String restrictionKey1 = restriction1.getRestrictionKey();
-
-		Restriction restriction2 = getRestrictionForTask(t2);
-		String restrictionKey2 = restriction2.getRestrictionKey();
-
-		int max1;
-		int max2;
-		int count1 = 0;
-		int count2 = 0;
-		synchronized (syncObject) {
-			max1 = getMaxConnectionCount(t1);
-			max2 = getMaxConnectionCount(t2);
-
-			AtomicInteger counter1 = counters.get(restrictionKey1);
-			if (counter1 != null) {
-				count1 = counter1.get();
-			}
-			AtomicInteger counter2 = counters.get(restrictionKey2);
-			if (counter2 != null) {
-				count2 = counter2.get();
-			}
-		}
-
-		boolean executable1 = max1 <= 0 || count1 < max1;
-		boolean executable2 = max2 <= 0 || count2 < max2;
-
-		if (executable1 && executable2) {
-			return 0;
-		} else if (!executable1 && executable2) {
-			return 1;
-		} else if (executable1 && !executable2) {
-			return -1;
-		} else {
-			return 0;
-		}
-	}
-
-	/**
 	 * Get maximum connection count for task
 	 * 
 	 * @param task Task
@@ -582,7 +545,7 @@ public abstract class QueueManagerBase<T, R> {
 		public void run() {
 			while (!stop) {
 				synchronized (syncObject) {
-					while (queue.isEmpty() || executingTasks.size() >= maxConnectionCount) {
+					while (!checkScheduleTasks || queue.isEmpty() || executingTasks.size() >= maxConnectionCount) {
 						try {
 							syncObject.wait();
 						} catch (InterruptedException e) {
@@ -593,41 +556,52 @@ public abstract class QueueManagerBase<T, R> {
 						}
 					}
 
-					T task = queue.poll();
-					if (task == null) {
-						continue;
+					Iterator<T> itQueue = queue.iterator();
+					while (itQueue.hasNext()) {
+						if (executingTasks.size() >= maxConnectionCount) {
+							break;
+						}
+
+						T task = itQueue.next();
+						Restriction restriction = getRestrictionForTask(task);
+						String restrictionKey = restriction.getRestrictionKey();
+						AtomicInteger count = counters.get(restrictionKey);
+						if (count == null) {
+							count = new AtomicInteger();
+							counters.put(restrictionKey, count);
+						}
+
+						int currentCountPerHost = count.get();
+						int maxCountPerHost = getMaxConnectionCount(task);
+						if (maxCountPerHost > 0 && currentCountPerHost >= maxCountPerHost) {
+							// No more connections allowed for this host
+							logger.info("xxxxxxxxxx Task is not executable: {}", task);
+							continue;
+						}
+
+						// Download is allowed for this task, so remove it from queue and add it to executing tasks
+						itQueue.remove();
+
+						logger.info("xxxxxxxxxx Executing Task: {}", task);
+						count.incrementAndGet();
+
+						QueueTask<T, R> taskCallable = queueTaskFactory.createTaskCallable(task);
+
+						try {
+							Future<R> future = completionService.submit(taskCallable);
+							taskCallable.setFuture(future);
+							addTaskToExecutingTasks(taskCallable);
+						} catch (Exception e) {
+							logger.error("Could not schedule task: {}", task, e);
+							removedTaskFromQueue(task, true);
+						}
 					}
 
-					Restriction restriction = getRestrictionForTask(task);
-					String restrictionKey = restriction.getRestrictionKey();
-					AtomicInteger count = counters.get(restrictionKey);
-					if (count == null) {
-						count = new AtomicInteger();
-						counters.put(restrictionKey, count);
-					}
-
-					int currentCountPerHost = count.get();
-					int maxCountPerHost = getMaxConnectionCount(task);
-					if (maxCountPerHost > 0 && currentCountPerHost >= maxCountPerHost) {
-						/*
-						 * No more connections allowed for this host, so put task back into queue
-						 */
-						queue.add(task);
-						continue;
-					}
-
-					count.incrementAndGet();
-
-					QueueTask<T, R> taskCallable = queueTaskFactory.createTaskCallable(task);
-
-					try {
-						Future<R> future = completionService.submit(taskCallable);
-						taskCallable.setFuture(future);
-						addTaskToExecutingTasks(taskCallable);
-					} catch (Exception e) {
-						logger.error("Could not schedule task: {}", task, e);
-						removedTaskFromQueue(task, true);
-					}
+					/*
+					 * Set flag to false, because now all tasks, which are able to execute were executed and as long as no new tasks are added or tasks finished
+					 * executing there is no need to check if tasks can be executed
+					 */
+					checkScheduleTasks = false;
 				}
 			}
 		}
@@ -651,17 +625,6 @@ public abstract class QueueManagerBase<T, R> {
 					continue;
 				}
 			}
-		}
-	}
-
-	/**
-	 * Comparator for Priority Queue
-	 */
-	private class PriorityQueueComparator implements Comparator<T> {
-
-		@Override
-		public int compare(T o1, T o2) {
-			return compareTasks(o1, o2);
 		}
 	}
 }
