@@ -575,14 +575,12 @@ public abstract class QueueManagerBase<T, R> {
 						int maxCountPerHost = getMaxConnectionCount(task);
 						if (maxCountPerHost > 0 && currentCountPerHost >= maxCountPerHost) {
 							// No more connections allowed for this host
-							logger.info("xxxxxxxxxx Task is not executable: {}", task);
 							continue;
 						}
 
 						// Download is allowed for this task, so remove it from queue and add it to executing tasks
 						itQueue.remove();
 
-						logger.info("xxxxxxxxxx Executing Task: {}", task);
 						count.incrementAndGet();
 
 						QueueTask<T, R> taskCallable = queueTaskFactory.createTaskCallable(task);
