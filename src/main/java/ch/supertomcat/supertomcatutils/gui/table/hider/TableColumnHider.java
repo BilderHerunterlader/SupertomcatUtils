@@ -31,4 +31,12 @@ public interface TableColumnHider {
 			hideColumn(identifier);
 		}
 	}
+
+	/**
+	 * Check if column is visible
+	 * 
+	 * @param identifier Identifier
+	 * @return True if the column is visible, false otherwise
+	 */
+	public boolean isVisible(Object identifier);
 }

@@ -9,7 +9,7 @@ import javax.swing.table.TableColumn;
 /**
  * Implementation of {@link TableColumnHider}, which uses size (min, max) to hide the column
  */
-public class TableColumHiderSizeBasedImpl implements TableColumnHider {
+public class TableColumnHiderSizeBasedImpl implements TableColumnHider {
 	/**
 	 * Restore Data
 	 */
@@ -25,7 +25,7 @@ public class TableColumHiderSizeBasedImpl implements TableColumnHider {
 	 * 
 	 * @param table
 	 */
-	public TableColumHiderSizeBasedImpl(JTable table) {
+	public TableColumnHiderSizeBasedImpl(JTable table) {
 		this.table = table;
 	}
 
@@ -74,6 +74,15 @@ public class TableColumHiderSizeBasedImpl implements TableColumnHider {
 		// Now width and preferred width can be set
 		tableColumn.setPreferredWidth(tableColumnRestoreData.getPreferredWidth());
 		tableColumn.setWidth(tableColumnRestoreData.getWidth());
+	}
+
+	@Override
+	public boolean isVisible(Object identifier) {
+		TableColumnRestoreData tableColumnRestoreData = columnsRestoreData.get(identifier);
+		if (tableColumnRestoreData == null) {
+			return true;
+		}
+		return !tableColumnRestoreData.isHidden();
 	}
 
 	/**
