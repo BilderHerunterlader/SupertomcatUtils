@@ -19,6 +19,11 @@ public final class Localization {
 	private static Locale currentLocale;
 
 	/**
+	 * Flag if the NOSTRINGFOUND_ prefix should be added, if there is no translation found for a key
+	 */
+	private static boolean notFoundPrefix;
+
+	/**
 	 * Constructor
 	 */
 	private Localization() {
@@ -32,18 +37,35 @@ public final class Localization {
 	 * @param country Country
 	 */
 	public static void init(String baseName, String language, String country) {
-		currentLocale = new Locale(language, country);
-		msg = ResourceBundle.getBundle(baseName, currentLocale);
+		init(baseName, language, country, true);
 	}
 
 	/**
-	 * Returns the localized String for a key. If the key is not found the key prefixed by "NOSTRINGFOUND_" is returned
+	 * Initialize localized Strings
+	 * 
+	 * @param baseName BaseName for localization
+	 * @param language Language
+	 * @param country Country
+	 * @param notFoundPrefix Flag if the NOSTRINGFOUND_ prefix should be added, if there is no translation found for a key
+	 */
+	public static void init(String baseName, String language, String country, boolean notFoundPrefix) {
+		currentLocale = new Locale(language, country);
+		msg = ResourceBundle.getBundle(baseName, currentLocale);
+		Localization.notFoundPrefix = notFoundPrefix;
+	}
+
+	/**
+	 * Returns the localized String for a key. If the key is not found and notFoundPrefix is true then the key prefixed by "NOSTRINGFOUND_" is returned
 	 * 
 	 * @param key Key
 	 * @return Localized String
 	 */
 	public static String getString(String key) {
-		return getString(key, "NOSTRINGFOUND_");
+		if (notFoundPrefix) {
+			return getString(key, "NOSTRINGFOUND_");
+		} else {
+			return getString(key, "");
+		}
 	}
 
 	/**
