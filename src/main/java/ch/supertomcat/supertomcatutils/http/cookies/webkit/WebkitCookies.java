@@ -47,7 +47,7 @@ public class WebkitCookies {
 	/**
 	 * Constructor
 	 */
-	public WebkitCookies() {
+	private WebkitCookies() {
 	}
 
 	/**
@@ -62,9 +62,9 @@ public class WebkitCookies {
 	 * @param cookieFile CookieFile for Opera
 	 * @return Cookies
 	 */
-	public static String getCookiesFromWebkit(String domain, String hosts[], String paths[], String cookieFile) {
+	public static String getCookiesFromWebkit(String domain, String[] hosts, String[] paths, String cookieFile) {
 		String retval = "";
-		logger.debug("Cookiefile: " + cookieFile);
+		logger.debug("Cookiefile: {}", cookieFile);
 		File file = new File(cookieFile);
 
 		/*
@@ -102,7 +102,7 @@ public class WebkitCookies {
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	public static String getCookiesFromWebkitSqlite(String cookieFile, final String domain, String hosts[], String paths[], Object dbLockObject) throws ClassNotFoundException, SQLException {
+	public static String getCookiesFromWebkitSqlite(String cookieFile, final String domain, String[] hosts, String[] paths, Object dbLockObject) throws ClassNotFoundException, SQLException {
 		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM cookies WHERE (host_key = '" + domain + "' OR ");
 		for (int i = 0; i < hosts.length; i++) {
 			sbSQLQuery.append("host_key = '" + hosts[i] + "'");

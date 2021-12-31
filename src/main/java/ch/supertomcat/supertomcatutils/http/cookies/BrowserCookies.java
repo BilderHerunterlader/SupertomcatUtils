@@ -65,6 +65,12 @@ public final class BrowserCookies {
 	}
 
 	/**
+	 * Constructor
+	 */
+	private BrowserCookies() {
+	}
+
+	/**
 	 * Sets the cookie strategy for the key
 	 * 
 	 * @param key Key
@@ -131,7 +137,7 @@ public final class BrowserCookies {
 	 * @return Cookies
 	 */
 	public static String getCookies(String url, CookieStrategy cookieStrategy) {
-		return getCookies(url, cookieStrategy, new HashMap<String, String>());
+		return getCookies(url, cookieStrategy, new HashMap<>());
 	}
 
 	/**
@@ -160,10 +166,10 @@ public final class BrowserCookies {
 			path = "/";
 		}
 
-		String hostsArr[] = domain.split("\\.");
-		String pathsArr[] = path.split("/");
+		String[] hostsArr = domain.split("\\.");
+		String[] pathsArr = path.split("/");
 
-		String hosts[] = new String[hostsArr.length - 1];
+		String[] hosts = new String[hostsArr.length - 1];
 		for (int i = 0; i < hostsArr.length - 1; i++) {
 			hosts[i] = ".";
 			for (int x = i; x < hostsArr.length; x++) {
@@ -174,14 +180,14 @@ public final class BrowserCookies {
 			}
 		}
 
-		String paths[] = new String[(pathsArr.length > 0) ? pathsArr.length : 1];
+		String[] paths = new String[(pathsArr.length > 0) ? pathsArr.length : 1];
 		paths[0] = "/";
 		for (int i = 1; i < pathsArr.length; i++) {
 			paths[i] = paths[i - 1] + (i == 1 ? "" : "/") + pathsArr[i];
 		}
 
 		String cookies = cookieStrategy.getCookies(url, domain, hosts, paths, cookieStrategyOptions);
-		logger.debug("Cookies for '" + domain + "': " + cookies);
+		logger.debug("Cookies for '{}': {}", domain, cookies);
 		return cookies;
 	}
 }

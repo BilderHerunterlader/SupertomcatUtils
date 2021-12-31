@@ -5,7 +5,13 @@ import ch.supertomcat.supertomcatutils.http.cookies.webkit.WebkitCookies;
 /**
  * Class for reading cookies of Opera (from Version 13 or higher)
  */
-public class OperaNewCookies {
+public final class OperaNewCookies {
+	/**
+	 * Constructor
+	 */
+	private OperaNewCookies() {
+	}
+
 	/**
 	 * Returns cookies from Opera
 	 * Because of problems, when two thread are trying to read
@@ -18,7 +24,7 @@ public class OperaNewCookies {
 	 * @param cookieFile CookieFile for Opera
 	 * @return Cookies
 	 */
-	public static String getCookiesFromOpera(String domain, String hosts[], String paths[], String cookieFile) {
+	public static String getCookiesFromOpera(String domain, String[] hosts, String[] paths, String cookieFile) {
 		return WebkitCookies.getCookiesFromWebkit(domain, hosts, paths, cookieFile);
 	}
 

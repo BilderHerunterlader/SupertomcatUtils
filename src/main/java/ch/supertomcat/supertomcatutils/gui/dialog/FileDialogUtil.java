@@ -19,28 +19,13 @@ public final class FileDialogUtil {
 	/**
 	 * Show Folder Open Dialog
 	 * 
-	 * @deprecated Use {@link #showFolderOpenDialog} instead
-	 * 
-	 * @param owner Owner or null
-	 * @param dir Directory or null
-	 * @param filter Filter or null
-	 * @return Chosen folder or null if none chosen
-	 */
-	@Deprecated
-	public static File showFolderDialog(Component owner, String dir, FileFilter filter) {
-		return showFolderOpenDialog(owner, dir, filter);
-	}
-
-	/**
-	 * Show Folder Open Dialog
-	 * 
 	 * @param owner Owner or null
 	 * @param dir Directory or null
 	 * @param filter Filter or null
 	 * @return Chosen folder or null if none chosen
 	 */
 	public static File showFolderOpenDialog(Component owner, String dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, false, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, false, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -53,7 +38,7 @@ public final class FileDialogUtil {
 	 * @return Chosen folder or null if none chosen
 	 */
 	public static File showFolderOpenDialog(Component owner, File dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, false, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, false, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -66,7 +51,7 @@ public final class FileDialogUtil {
 	 * @return Chosen file or null if none chosen
 	 */
 	public static File showFolderSaveDialog(Component owner, String dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, true, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, true, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -79,7 +64,7 @@ public final class FileDialogUtil {
 	 * @return Chosen file or null if none chosen
 	 */
 	public static File showFolderSaveDialog(Component owner, File dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, true, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.DIRECTORIES_ONLY, true, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -140,7 +125,7 @@ public final class FileDialogUtil {
 	 * @return Chosen file or null if none chosen
 	 */
 	public static File showFileOpenDialog(Component owner, String dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, false, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, false, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -153,7 +138,7 @@ public final class FileDialogUtil {
 	 * @return Chosen file or null if none chosen
 	 */
 	public static File showFileOpenDialog(Component owner, File dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, false, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, false, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -166,7 +151,7 @@ public final class FileDialogUtil {
 	 * @return Chosen file or null if none chosen
 	 */
 	public static File showFileSaveDialog(Component owner, String dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, false, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, true, false);
 		return getSingleSelectionResult(files);
 	}
 
@@ -179,7 +164,7 @@ public final class FileDialogUtil {
 	 * @return Chosen file or null if none chosen
 	 */
 	public static File showFileSaveDialog(Component owner, File dir, FileFilter filter) {
-		File files[] = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, false, false);
+		File[] files = showFileDialog(owner, dir, filter, JFileChooser.FILES_ONLY, true, false);
 		return getSingleSelectionResult(files);
 	}
 

@@ -14,11 +14,6 @@ public final class Localization {
 	private static ResourceBundle msg;
 
 	/**
-	 * Actual Language
-	 */
-	private static Locale currentLocale;
-
-	/**
 	 * Flag if the NOSTRINGFOUND_ prefix should be added, if there is no translation found for a key
 	 */
 	private static boolean notFoundPrefix;
@@ -49,7 +44,7 @@ public final class Localization {
 	 * @param notFoundPrefix Flag if the NOSTRINGFOUND_ prefix should be added, if there is no translation found for a key
 	 */
 	public static void init(String baseName, String language, String country, boolean notFoundPrefix) {
-		currentLocale = new Locale(language, country);
+		Locale currentLocale = new Locale(language, country);
 		msg = ResourceBundle.getBundle(baseName, currentLocale);
 		Localization.notFoundPrefix = notFoundPrefix;
 	}

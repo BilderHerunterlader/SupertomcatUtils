@@ -126,11 +126,7 @@ public class RegexReplacePipeline {
 	 * @param index2 Second Index
 	 */
 	public void swapRegExp(int index1, int index2) {
-		if (index1 == index2) {
-			return;
-		} else if (index1 < 0 || index1 >= regexReplaces.size()) {
-			return;
-		} else if (index2 < 0 || index2 >= regexReplaces.size()) {
+		if (index1 == index2 || index1 < 0 || index1 >= regexReplaces.size() || index2 < 0 || index2 >= regexReplaces.size()) {
 			return;
 		}
 

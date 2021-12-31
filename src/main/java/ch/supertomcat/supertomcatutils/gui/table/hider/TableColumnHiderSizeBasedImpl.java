@@ -33,11 +33,7 @@ public class TableColumnHiderSizeBasedImpl implements TableColumnHider {
 	public void hideColumn(Object identifier) {
 		TableColumn tableColumn = table.getColumn(identifier);
 
-		TableColumnRestoreData tableColumnRestoreData = columnsRestoreData.get(identifier);
-		if (tableColumnRestoreData == null) {
-			tableColumnRestoreData = new TableColumnRestoreData();
-			columnsRestoreData.put(identifier, tableColumnRestoreData);
-		}
+		TableColumnRestoreData tableColumnRestoreData = columnsRestoreData.computeIfAbsent(identifier, k -> new TableColumnRestoreData());
 
 		if (!tableColumnRestoreData.isHidden()) {
 			tableColumnRestoreData.setMinWidth(tableColumn.getMinWidth());

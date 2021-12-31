@@ -11,7 +11,7 @@ public final class ApplicationProperties {
 	/**
 	 * Application Properties
 	 */
-	private static final Properties applicationProperties = new Properties();
+	private static final Properties APPLICATION_PROPERTIES = new Properties();
 
 	/**
 	 * Constructor
@@ -24,7 +24,7 @@ public final class ApplicationProperties {
 	 * @throws IOException
 	 */
 	public static void initProperties(InputStream in) throws IOException {
-		applicationProperties.load(in);
+		APPLICATION_PROPERTIES.load(in);
 	}
 
 	/**
@@ -32,7 +32,7 @@ public final class ApplicationProperties {
 	 * @return Property
 	 */
 	public static String getProperty(String name) {
-		return applicationProperties.getProperty(name);
+		return APPLICATION_PROPERTIES.getProperty(name);
 	}
 
 	/**
@@ -40,6 +40,6 @@ public final class ApplicationProperties {
 	 * @param value Value
 	 */
 	public static void setProperty(String name, String value) {
-		applicationProperties.setProperty(name, value);
+		APPLICATION_PROPERTIES.setProperty(name, value);
 	}
 }

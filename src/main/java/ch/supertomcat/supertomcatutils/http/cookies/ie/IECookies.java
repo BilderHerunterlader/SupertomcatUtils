@@ -17,10 +17,9 @@ import org.slf4j.LoggerFactory;
 import ch.supertomcat.supertomcatutils.http.HTTPUtil;
 
 /**
- * 
- *
+ * Class for reading cookies of IE
  */
-public class IECookies {
+public final class IECookies {
 	private static final Pattern COOKIE_DOMAIN_PATTERN = Pattern.compile("^.*?@(.*?)\\[[0-9]+\\]\\.txt$");
 
 	/**
@@ -29,13 +28,19 @@ public class IECookies {
 	private static Logger logger = LoggerFactory.getLogger(IECookies.class);
 
 	/**
+	 * Constructor
+	 */
+	private IECookies() {
+	}
+
+	/**
 	 * Returns cookies from IE
 	 * 
 	 * @param domain Domain
 	 * @param hosts Hosts
 	 * @return Cookies
 	 */
-	public static String getCookiesFromIE(final String domain, final String hosts[]) {
+	public static String getCookiesFromIE(final String domain, final String[] hosts) {
 		String os = System.getProperty("os.name").toLowerCase();
 		if (!os.contains("windows")) {
 			return "";
@@ -100,7 +105,7 @@ public class IECookies {
 		try (FileInputStream in = new FileInputStream(f); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
 			List<String[]> v = new ArrayList<>();
 
-			String cookie[] = { "", "", "", "", "", "", "", "" };
+			String[] cookie = { "", "", "", "", "", "", "", "" };
 			int i = 0;
 			String row = null;
 			while ((row = br.readLine()) != null) {

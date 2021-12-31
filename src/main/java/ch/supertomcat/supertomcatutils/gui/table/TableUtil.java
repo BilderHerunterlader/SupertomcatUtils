@@ -53,7 +53,7 @@ public final class TableUtil {
 	public static Map<String, Integer> parseColWidthsSetting(String setting) {
 		Map<String, Integer> map = new HashMap<>();
 
-		String columns[] = setting.split("\\|");
+		String[] columns = setting.split("\\|");
 		if (columns == null || columns.length == 0) {
 			return null;
 		}
@@ -248,7 +248,7 @@ public final class TableUtil {
 	public static void setPreferredScrollableViewportWidth(JTable table, int characterCount) {
 		FontMetrics fontMetrics = table.getFontMetrics(table.getFont());
 		int charWidth = fontMetrics.charWidth('A');
-		int preferredTableWidth = 120 * charWidth;
+		int preferredTableWidth = characterCount * charWidth;
 		table.setPreferredScrollableViewportSize(new Dimension(preferredTableWidth, table.getPreferredScrollableViewportSize().height));
 	}
 

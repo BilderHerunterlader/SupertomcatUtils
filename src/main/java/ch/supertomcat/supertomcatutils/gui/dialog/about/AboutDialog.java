@@ -12,9 +12,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.WindowConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class AboutDialog extends JDialog {
 	public AboutDialog(Window owner, String title, Image icon) {
 		setTitle(title);
 		setIconImage(icon);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		setLayout(new BorderLayout());
 
 		configureComponents();

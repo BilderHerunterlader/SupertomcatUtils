@@ -105,7 +105,7 @@ public final class UnitFormatUtil {
 	 * @return Percent-String
 	 */
 	public static String getPercentString(long size, long max) {
-		return Double.valueOf(((double)size / max) * 100.0).intValue() + "%";
+		return (int)(((double)size / max) * 100.0d) + "%";
 	}
 
 	/**
@@ -125,7 +125,6 @@ public final class UnitFormatUtil {
 			}
 			double secondsPassed = milliSecondsPassed / 1000.0d;
 			if (secondsPassed < 1) {
-				secondsPassed = 1;
 				// interpolate size to 1 second
 				return 1000.0d * size / milliSecondsPassed;
 			}

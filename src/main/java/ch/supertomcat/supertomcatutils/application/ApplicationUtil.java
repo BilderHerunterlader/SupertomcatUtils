@@ -239,7 +239,7 @@ public final class ApplicationUtil {
 		final Pattern patternLogFiles = Pattern.compile(logFileName + "\\.([0-9]{4}-[0-9]{2}-[0-9]{2})");
 		File logDir = new File(logPath);
 		if (logDir.exists() && logDir.isDirectory()) {
-			File logFiles[] = logDir.listFiles(new FilenameFilter() {
+			File[] logFiles = logDir.listFiles(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
 					return patternLogFiles.matcher(name).matches();
@@ -250,7 +250,7 @@ public final class ApplicationUtil {
 				return;
 			}
 
-			final long millisecondsPerDay = 24 * 60 * 60 * 1000;
+			final long millisecondsPerDay = 24 * 60 * 60 * 1000L;
 			Date beforeXDays = new Date((new Date().getTime()) - (millisecondsPerDay * days));
 
 			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -321,10 +321,10 @@ public final class ApplicationUtil {
 		cal.add(Calendar.DATE, -daysToKeepBackup);
 		final Date backupDeleteDate = cal.getTime();
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS");
-		final long backupDeleteTime = daysToKeepBackup * 24 * 60 * 60 * 1000;
+		final long backupDeleteTime = daysToKeepBackup * 24 * 60 * 60 * 1000L;
 
 		// Delete old backup-Files
-		File backupFiles[] = folder.listFiles(new FileFilter() {
+		File[] backupFiles = folder.listFiles(new FileFilter() {
 			private final Pattern oldBackupPattern = Pattern.compile("^" + filename + ".bak-([0-9]+)$");
 			private final Pattern backupPattern = Pattern.compile("^" + filename + "-([0-9]{4}-[0-9]{2}-[0-9]{2}--[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3})$");
 

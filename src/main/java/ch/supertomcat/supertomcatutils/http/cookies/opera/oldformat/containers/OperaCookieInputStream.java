@@ -4,9 +4,10 @@ import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -891,8 +892,8 @@ public class OperaCookieInputStream extends DataInputStream {
 		// Country Top Level Domains (like "ch", "de", ...)
 		List<OperaDomain> countryTopLevelDomains = new ArrayList<>();
 
-		Stack<OperaDomain> domainStack = new Stack<>();
-		Stack<OperaPath> pathStack = new Stack<>();
+		Deque<OperaDomain> domainStack = new ArrayDeque<>();
+		Deque<OperaPath> pathStack = new ArrayDeque<>();
 
 		int tagID;
 		while ((tagID = readTagID(tagSize)) != -1) {

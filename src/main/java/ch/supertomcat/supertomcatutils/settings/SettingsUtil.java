@@ -3,7 +3,13 @@ package ch.supertomcat.supertomcatutils.settings;
 /**
  * Class which provides methods to parse values from String
  */
-public class SettingsUtil {
+public final class SettingsUtil {
+	/**
+	 * Constructor
+	 */
+	private SettingsUtil() {
+	}
+
 	/**
 	 * Parse Value
 	 * 

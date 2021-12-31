@@ -27,6 +27,11 @@ import ch.supertomcat.supertomcatutils.io.CopyUtil;
  */
 public abstract class SQLiteDB<T> {
 	/**
+	 * Vacuum SQL Command
+	 */
+	private static final String VACUUM_SQL_COMMAND = "VACUUM";
+
+	/**
 	 * Logger for this class
 	 */
 	protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -40,11 +45,6 @@ public abstract class SQLiteDB<T> {
 	 * Table Name
 	 */
 	protected final String tableName;
-
-	/**
-	 * Vacuum SQL Command
-	 */
-	private final String vacuumSQL = "VACUUM";
 
 	/**
 	 * Constructor
@@ -87,10 +87,8 @@ public abstract class SQLiteDB<T> {
 
 		if (defragDatabaseOnStart) {
 			File dbFile = new File(databaseFile);
-			if (dbFile.exists()) {
-				if (dbFile.length() >= defragMinFileSize) {
-					defragDatabase();
-				}
+			if (dbFile.exists() && dbFile.length() >= defragMinFileSize) {
+				defragDatabase();
 			}
 		}
 	}
@@ -115,7 +113,7 @@ public abstract class SQLiteDB<T> {
 
 	private void createFolderIfNotExist() {
 		File folder = new File(ApplicationProperties.getProperty("DatabasePath"));
-		if (folder.exists() == false && !folder.mkdirs()) {
+		if (!folder.exists() && !folder.mkdirs()) {
 			logger.error("Could not create database folder: {}", folder.getAbsolutePath());
 		}
 	}
@@ -146,7 +144,7 @@ public abstract class SQLiteDB<T> {
 	 */
 	private synchronized boolean defragDatabase() {
 		try (Connection con = getDatabaseConnection()) {
-			try (PreparedStatement statement = con.prepareStatement(vacuumSQL)) {
+			try (PreparedStatement statement = con.prepareStatement(VACUUM_SQL_COMMAND)) {
 				statement.executeUpdate();
 				return true;
 			}

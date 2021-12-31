@@ -28,7 +28,7 @@ import ch.supertomcat.supertomcatutils.io.CopyUtil;
 /**
  * Class for reading cookies of Firefox
  */
-public class FirefoxCookies {
+public final class FirefoxCookies {
 	private static final Pattern FIREFOX_TEXTFILE_COOKIE_PATTERN = Pattern.compile("^.*\t(FALSE|TRUE)\t\\/\t(FALSE|TRUE)\t.*\t.*\t.*");
 
 	/**
@@ -52,6 +52,12 @@ public class FirefoxCookies {
 	private static long lastFirefoxSqliteCopy = 0;
 
 	private static FirefoxCookieComparator cookieComparator = new FirefoxCookieComparator();
+
+	/**
+	 * Constructor
+	 */
+	private FirefoxCookies() {
+	}
 
 	/**
 	 * Returns cookies from Firefox

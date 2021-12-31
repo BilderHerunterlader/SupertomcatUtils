@@ -64,7 +64,12 @@ public final class FileUtil {
 	/**
 	 * patternWindowsDriveLetter
 	 */
-	private static Pattern patternWindowsDriveLetter = Pattern.compile("^[a-zA-Z]:\\\\.*");
+	private static final Pattern PATTERN_WINDOWS_DRIVE_LETTER = Pattern.compile("^[a-zA-Z]:\\\\.*");
+
+	/**
+	 * Pattern for relative path component
+	 */
+	private static final Pattern RELATIVE_PATH_COMPONENT_REMOVAL_PATTERN = Pattern.compile("\\.[\\\\/]");
 
 	/**
 	 * Filter all non-ascii chars from paths and filenames
@@ -136,6 +141,9 @@ public final class FileUtil {
 	 * @return Pfad zum Verzeichnis
 	 */
 	public static String getDirectory(String file) {
+		if (file == null) {
+			return "";
+		}
 		int pos = getLastSeperatorPos(file);
 		if (pos > -1) {
 			return file.substring(0, pos + 1);
@@ -150,6 +158,9 @@ public final class FileUtil {
 	 * @return Filename
 	 */
 	public static String getFilename(String file) {
+		if (file == null) {
+			return file;
+		}
 		int pos = getLastSeperatorPos(file);
 		if (pos > -1) {
 			return file.substring(pos + 1);
@@ -209,6 +220,9 @@ public final class FileUtil {
 	 */
 	public static String getFilePrefix(String file) {
 		String filename = getFilename(file);
+		if (filename == null) {
+			return file;
+		}
 		int pos = getLastDotPos(filename);
 		if (pos > 0) {
 			return filename.substring(0, pos);
@@ -257,15 +271,15 @@ public final class FileUtil {
 		String absolutPath = folderPath.getAbsolutePath();
 		String absolutParentPath = folderParentPath.getAbsolutePath();
 
-		if (patternWindowsDriveLetter.matcher(absolutPath).matches()) {
+		if (PATTERN_WINDOWS_DRIVE_LETTER.matcher(absolutPath).matches()) {
 			absolutPath = absolutPath.toLowerCase();
 		}
-		if (patternWindowsDriveLetter.matcher(absolutParentPath).matches()) {
+		if (PATTERN_WINDOWS_DRIVE_LETTER.matcher(absolutParentPath).matches()) {
 			absolutParentPath = absolutParentPath.toLowerCase();
 		}
 
-		absolutPath = absolutPath.replaceAll("\\.(\\\\|/)", "");
-		absolutParentPath = absolutParentPath.replaceAll("\\.(\\\\|/)", "");
+		absolutPath = RELATIVE_PATH_COMPONENT_REMOVAL_PATTERN.matcher(absolutPath).replaceAll("");
+		absolutParentPath = RELATIVE_PATH_COMPONENT_REMOVAL_PATTERN.matcher(absolutParentPath).replaceAll("");
 
 		if (!absolutPath.endsWith(FILE_SEPERATOR)) {
 			absolutPath += FILE_SEPERATOR;
@@ -284,7 +298,7 @@ public final class FileUtil {
 	 * @param str Path
 	 * @return Path
 	 */
-	public synchronized static String lTrim(String str) {
+	public static synchronized String lTrim(String str) {
 		return lTrimPatternPath.matcher(str).replaceAll("");
 	}
 
@@ -294,7 +308,7 @@ public final class FileUtil {
 	 * @param str Path
 	 * @return Path
 	 */
-	public synchronized static String rTrim(String str) {
+	public static synchronized String rTrim(String str) {
 		return rTrimPatternPath.matcher(str).replaceAll("");
 	}
 
@@ -367,7 +381,7 @@ public final class FileUtil {
 			if (len < numberLen) {
 				len = numberLen;
 			}
-			char chars[] = new char[len - numberLen];
+			char[] chars = new char[len - numberLen];
 			Arrays.fill(chars, '0');
 			String zeroFilledPrefix = new String(chars);
 			return zeroFilledPrefix + strNumber;
@@ -535,7 +549,7 @@ public final class FileUtil {
 				/*
 				 * If we have a Windows-Path we need to also remove : chars except the one after the drive letter
 				 */
-				Matcher matcherWindowsDriveLetter = patternWindowsDriveLetter.matcher(result);
+				Matcher matcherWindowsDriveLetter = PATTERN_WINDOWS_DRIVE_LETTER.matcher(result);
 				if (matcherWindowsDriveLetter.matches()) {
 					String driveLetter = result.substring(0, 2);
 					String remainingPath = result.substring(2);

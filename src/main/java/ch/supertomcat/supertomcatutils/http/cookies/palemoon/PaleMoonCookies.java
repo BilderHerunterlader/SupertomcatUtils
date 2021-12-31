@@ -18,7 +18,7 @@ import ch.supertomcat.supertomcatutils.io.CopyUtil;
 /**
  * Class for reading cookies of Pale Moon
  */
-public class PaleMoonCookies {
+public final class PaleMoonCookies {
 
 	/**
 	 * Logger for this class
@@ -41,6 +41,12 @@ public class PaleMoonCookies {
 	private static long lastPaleMoonSqliteCopy = 0;
 
 	/**
+	 * Constructor
+	 */
+	private PaleMoonCookies() {
+	}
+
+	/**
 	 * Returns cookies from Pale Moon
 	 * Because of problems, when two thread are trying to read
 	 * cookies from Pale Moon at the same time, i had to synchronize
@@ -52,9 +58,9 @@ public class PaleMoonCookies {
 	 * @param cookieFile CookieFile for PaleMoon
 	 * @return Cookies
 	 */
-	public static String getCookiesFromPaleMoon(String domain, String hosts[], String paths[], String cookieFile) {
+	public static String getCookiesFromPaleMoon(String domain, String[] hosts, String[] paths, String cookieFile) {
 		String retval = "";
-		logger.debug("Pale Moon: Cookiefile: " + cookieFile);
+		logger.debug("Pale Moon: Cookiefile: {}", cookieFile);
 		File file = new File(cookieFile);
 		if (file.exists() && file.getName().endsWith(".sqlite")) {
 			logger.debug("Pale Moon: Cookie file exist, opening database...");
@@ -93,7 +99,7 @@ public class PaleMoonCookies {
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	private static String getCookiesFromPaleMoonSqlite(String cookieFile, String domain, String hosts[], String paths[]) throws ClassNotFoundException, SQLException {
+	private static String getCookiesFromPaleMoonSqlite(String cookieFile, String domain, String[] hosts, String[] paths) throws ClassNotFoundException, SQLException {
 		return FirefoxCookies.getCookiesFromFirefox3Sqlite(cookieFile, domain, hosts, paths, paleMoonDBLock, "Pale Moon");
 	}
 
@@ -160,7 +166,7 @@ public class PaleMoonCookies {
 			if (defaultProfileIndex > -1) {
 				return paths.get(defaultProfileIndex);
 			} else {
-				if (paths.size() > 0) {
+				if (!paths.isEmpty()) {
 					return paths.get(0);
 				} else {
 					return "";

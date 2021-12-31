@@ -7,10 +7,15 @@ import ch.supertomcat.supertomcatutils.http.cookies.opera.oldformat.containers.O
 import ch.supertomcat.supertomcatutils.http.cookies.opera.oldformat.containers.OperaCookieRoot;
 
 /**
- * 
- *
+ * Class for reading cookies of Opera
  */
-public class OperaCookies {
+public final class OperaCookies {
+	/**
+	 * Constructor
+	 */
+	private OperaCookies() {
+	}
+
 	/**
 	 * Returns cookies from Opera
 	 * 
@@ -76,7 +81,7 @@ public class OperaCookies {
 		if (os.contains("windows")) {
 			operaCookieFile = System.getenv("APPDATA");
 			operaCookieFile += "/Opera/Opera/profile/cookies4.dat";
-			if (checkFileExists(operaCookieFile) == false) {
+			if (!checkFileExists(operaCookieFile)) {
 				operaCookieFile = System.getenv("APPDATA");
 				operaCookieFile += "/Opera/Opera/cookies4.dat";
 			}

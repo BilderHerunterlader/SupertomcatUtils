@@ -44,7 +44,7 @@ public final class ImageUtil {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public static BufferedImage downloadImage(String url, int connectTimeout, int readTimeout) throws MalformedURLException, IOException {
+	public static BufferedImage downloadImage(String url, int connectTimeout, int readTimeout) throws IOException {
 		URLConnection con = new URL(url).openConnection();
 		con.setConnectTimeout(connectTimeout);
 		con.setReadTimeout(readTimeout);
@@ -93,7 +93,7 @@ public final class ImageUtil {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public static byte[] downloadImageRaw(String url, int connectTimeout, int readTimeout) throws MalformedURLException, IOException {
+	public static byte[] downloadImageRaw(String url, int connectTimeout, int readTimeout) throws IOException {
 		URLConnection con = new URL(url).openConnection();
 		con.setConnectTimeout(connectTimeout);
 		con.setReadTimeout(readTimeout);
@@ -114,7 +114,7 @@ public final class ImageUtil {
 	 * @return Scaled Image
 	 */
 	public static BufferedImage generatePreviewImage(Image img, int width, int height) {
-		return generatePreviewImage(img, width, height, BufferedImage.SCALE_DEFAULT);
+		return generatePreviewImage(img, width, height, Image.SCALE_DEFAULT);
 	}
 
 	/**
@@ -147,14 +147,13 @@ public final class ImageUtil {
 		int origWidth = dim.width;
 		int origHeight = dim.height;
 
-		float scaleFactor = 1.0f;
 		int newWidth = width;
 		int newHeight = height;
 		if (width < 0) {
-			scaleFactor = (float)height / origHeight;
+			float scaleFactor = (float)height / origHeight;
 			newWidth = (int)(origWidth * scaleFactor);
 		} else if (height < 0) {
-			scaleFactor = (float)width / origWidth;
+			float scaleFactor = (float)width / origWidth;
 			newHeight = (int)(origHeight * scaleFactor);
 		}
 
