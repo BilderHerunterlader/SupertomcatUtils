@@ -3,6 +3,7 @@ package ch.supertomcat.supertomcatutils.application;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -270,8 +271,8 @@ public abstract class ApplicationMain {
 	 * Initialize Application Properties from Application_Config.properties
 	 */
 	protected void initializeApplicationProperties() {
-		try {
-			ApplicationProperties.initProperties(mainClass.getResourceAsStream("/Application_Config.properties"));
+		try (InputStream in = mainClass.getResourceAsStream("/Application_Config.properties")) {
+			ApplicationProperties.initProperties(in);
 		} catch (IOException e) {
 			logStartupError("Could not initialize application properties", e);
 			System.exit(1);
