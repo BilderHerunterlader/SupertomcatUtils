@@ -65,6 +65,11 @@
 			<artifactId>tango-icon-theme</artifactId>
 			<version>0.8.90</version>
 		</dependency>
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>2.3.3</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
