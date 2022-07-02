@@ -245,9 +245,12 @@ public abstract class QueueManagerBase<T, R> {
 	 */
 	public void setMaxConnectionCount(int maxConnectionCount) {
 		synchronized (syncObject) {
+			if (this.maxConnectionCount == maxConnectionCount) {
+				return;
+			}
 			this.maxConnectionCount = maxConnectionCount;
 			applyMaxConnectionCount();
-			updateOpenSlots();
+			updateOpenSlots(false);
 		}
 	}
 
@@ -331,8 +334,10 @@ public abstract class QueueManagerBase<T, R> {
 
 	/**
 	 * Update Open Slots
+	 * 
+	 * @param taskFinished Flag if slots are updated, because a task was finished
 	 */
-	protected void updateOpenSlots() {
+	protected void updateOpenSlots(boolean taskFinished) {
 		synchronized (syncObject) {
 			int openSlotsTemp = maxConnectionCount - executingTasks.size();
 			if (openSlotsTemp < 0) {
@@ -340,6 +345,7 @@ public abstract class QueueManagerBase<T, R> {
 				 * Handle case when maxConnectionCount was lowered, but there are still more tasks executing
 				 */
 				openSlots = 0;
+				return;
 			}
 			openSlots = openSlotsTemp;
 		}
@@ -398,7 +404,7 @@ public abstract class QueueManagerBase<T, R> {
 	protected void addTaskToExecutingTasks(QueueTask<T, R> task) {
 		synchronized (syncObject) {
 			executingTasks.add(task);
-			updateOpenSlots();
+			updateOpenSlots(false);
 		}
 	}
 
@@ -441,7 +447,7 @@ public abstract class QueueManagerBase<T, R> {
 				}
 			}
 
-			updateOpenSlots();
+			updateOpenSlots(false);
 
 			checkScheduleTasks = true;
 			syncObject.notifyAll();
@@ -483,7 +489,7 @@ public abstract class QueueManagerBase<T, R> {
 				logger.error("Task not found for future: {}", future);
 			}
 
-			updateOpenSlots();
+			updateOpenSlots(true);
 
 			checkScheduleTasks = true;
 			syncObject.notifyAll();
