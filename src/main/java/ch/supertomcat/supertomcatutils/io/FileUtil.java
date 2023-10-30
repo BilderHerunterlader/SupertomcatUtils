@@ -578,28 +578,28 @@ public final class FileUtil {
 		 */
 		public FilenameAsciiOnlyFilter() {
 			// Replace some not allowed chars by suitable alternatives
-			patterns.put(Pattern.compile("[ö]"), "oe");
-			patterns.put(Pattern.compile("[òóôõ]"), "o");
-			patterns.put(Pattern.compile("[Ö]"), "OE");
-			patterns.put(Pattern.compile("[ÒÓÔÕ]"), "O");
+			patterns.put(Pattern.compile("[Ã¶]"), "oe");
+			patterns.put(Pattern.compile("[Ã²Ã³Ã´Ãµ]"), "o");
+			patterns.put(Pattern.compile("[Ã–]"), "OE");
+			patterns.put(Pattern.compile("[Ã’Ã“Ã”Ã•]"), "O");
 
-			patterns.put(Pattern.compile("[ä]"), "ae");
-			patterns.put(Pattern.compile("[àáâãå]"), "a");
-			patterns.put(Pattern.compile("[Ä]"), "AE");
-			patterns.put(Pattern.compile("[ÀÁÂÃÅ]"), "A");
+			patterns.put(Pattern.compile("[Ã¤]"), "ae");
+			patterns.put(Pattern.compile("[Ã Ã¡Ã¢Ã£Ã¥]"), "a");
+			patterns.put(Pattern.compile("[Ã„]"), "AE");
+			patterns.put(Pattern.compile("[Ã€ÃÃ‚ÃƒÃ…]"), "A");
 
-			patterns.put(Pattern.compile("[ü]"), "ue");
-			patterns.put(Pattern.compile("[ùúûµ]"), "u");
-			patterns.put(Pattern.compile("[Ü]"), "UE");
-			patterns.put(Pattern.compile("[ÙÚÛ]"), "U");
+			patterns.put(Pattern.compile("[Ã¼]"), "ue");
+			patterns.put(Pattern.compile("[Ã¹ÃºÃ»Âµ]"), "u");
+			patterns.put(Pattern.compile("[Ãœ]"), "UE");
+			patterns.put(Pattern.compile("[Ã™ÃšÃ›]"), "U");
 
-			patterns.put(Pattern.compile("[èéêë]"), "e");
-			patterns.put(Pattern.compile("[ÈÉÊË]"), "E");
+			patterns.put(Pattern.compile("[Ã¨Ã©ÃªÃ«]"), "e");
+			patterns.put(Pattern.compile("[ÃˆÃ‰ÃŠÃ‹]"), "E");
 
-			patterns.put(Pattern.compile("[ìíîï]"), "i");
-			patterns.put(Pattern.compile("[ÌÍÎÏ]"), "I");
+			patterns.put(Pattern.compile("[Ã¬Ã­Ã®Ã¯]"), "i");
+			patterns.put(Pattern.compile("[ÃŒÃÃÃ]"), "I");
 
-			patterns.put(Pattern.compile("[ß]"), "ss");
+			patterns.put(Pattern.compile("[ÃŸ]"), "ss");
 
 			// If the user only allows ASCII chars then filter all other
 			patterns.put(Pattern.compile("[^\\x20-\\x7E]"), "");
