@@ -166,6 +166,7 @@ public final class ApplicationUtil {
 	 * @param strLockFilename Lockfile Filename
 	 * @return True if successful
 	 */
+	@SuppressWarnings("resource")
 	public static synchronized boolean lockLockFile(String strLockFilePath, String strLockFilename) {
 		Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
 
