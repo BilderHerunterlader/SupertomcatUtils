@@ -1,5 +1,6 @@
 package ch.supertomcat.supertomcatutils.http.cookies;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,5 +17,5 @@ public interface CookieStrategy {
 	 * @param options Options
 	 * @return Cookies
 	 */
-	public String getCookies(String url, String domain, String[] hosts, String[] paths, Map<String, String> options);
+	public List<BrowserCookie> getCookies(String url, String domain, String[] hosts, String[] paths, Map<String, String> options);
 }

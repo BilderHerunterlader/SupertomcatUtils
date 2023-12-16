@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.supertomcat.supertomcatutils.http.HTTPUtil;
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 
 /**
  * Class for reading cookies of IE
@@ -40,10 +41,10 @@ public final class IECookies {
 	 * @param hosts Hosts
 	 * @return Cookies
 	 */
-	public static String getCookiesFromIE(final String domain, final String[] hosts) {
+	public static List<BrowserCookie> getCookiesFromIE(final String domain, final String[] hosts) {
 		String os = System.getProperty("os.name").toLowerCase();
 		if (!os.contains("windows")) {
-			return "";
+			return new ArrayList<>();
 		}
 
 		try {
@@ -71,25 +72,22 @@ public final class IECookies {
 					}
 				};
 
-				StringBuilder sbRetval = new StringBuilder();
+				List<BrowserCookie> allCookies = new ArrayList<>();
 
 				File[] files = folder.listFiles(filter);
 				if (files != null) {
 					for (File file : files) {
-						String cookie = getCookiesFromIEFile(file, domain);
-						if (!cookie.isEmpty() && sbRetval.length() > 0) {
-							sbRetval.append("; ");
-						}
-						sbRetval.append(cookie);
+						List<BrowserCookie> cookies = getCookiesFromIEFile(file, domain);
+						allCookies.addAll(cookies);
 					}
 				}
 
-				return sbRetval.toString();
+				return allCookies;
 			}
-			return "";
+			return new ArrayList<>();
 		} catch (NullPointerException e) {
 			logger.error("Could not read cookies from IE", e);
-			return "";
+			return new ArrayList<>();
 		}
 	}
 
@@ -100,48 +98,74 @@ public final class IECookies {
 	 * @param domain Domain
 	 * @return Cookies
 	 */
-	private static String getCookiesFromIEFile(File f, String domain) {
-		StringBuilder sbRetval = new StringBuilder();
+	private static List<BrowserCookie> getCookiesFromIEFile(File f, String domain) {
 		try (FileInputStream in = new FileInputStream(f); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
-			List<String[]> v = new ArrayList<>();
+			List<BrowserCookie> cookies = new ArrayList<>();
 
-			String[] cookie = { "", "", "", "", "", "", "", "" };
+			BrowserCookie cookie = new BrowserCookie();
+			cookie.setDomain("");
 			int i = 0;
 			String row = null;
 			while ((row = br.readLine()) != null) {
 				if (row.equals("*")) {
 					i = 0;
-					if ((domain + "/").matches("^.*" + cookie[2] + "$")) {
-						v.add(cookie);
+					if ((domain + "/").matches("^.*" + cookie.getDomain() + "$")) {
+						cookies.add(cookie);
 					}
-					cookie = new String[8];
-					cookie[0] = ""; // Name
-					cookie[1] = ""; // Content
-					cookie[2] = ""; // Domain
-					cookie[3] = ""; // Unbekannt
-					cookie[4] = ""; // Gueltigkeit
-					cookie[5] = ""; // Gueltigkeit
-					cookie[6] = ""; // Erstellungszeit
-					cookie[7] = ""; // Erstellungszeit
+					cookie = new BrowserCookie();
+					cookie.setDomain("");
 					continue;
 				}
 
 				if ((i > -1) && (i < 8)) {
-					cookie[i] = row;
+					switch (i) {
+						case 0:
+							// Name
+							cookie.setName(row);
+							break;
+						case 1:
+							// Content
+							cookie.setValue(row);
+							break;
+						case 2:
+							// Domain
+							cookie.setDomain(row);
+							break;
+						case 3:
+							// Nothing to do, because unknown field
+							break;
+						case 4:
+							// Gueltigkeit
+							// TODO How is the format?
+							cookie.setExpiryDate(null);
+							break;
+						case 5:
+							// Gueltigkeit
+							// TODO How is the format?
+							cookie.setExpiryDate(null);
+							break;
+						case 6:
+							// Erstellungszeit
+							// TODO How is the format?
+							cookie.setCreationDate(null);
+							break;
+						case 7:
+							// Erstellungszeit
+							// TODO How is the format?
+							cookie.setCreationDate(null);
+							break;
+						default:
+							logger.error("Unknown field position: {}", i);
+							break;
+					}
 				}
 				i++;
 			}
 
-			for (String[] cookiex : v) {
-				if (sbRetval.length() > 0) {
-					sbRetval.append("; ");
-				}
-				sbRetval.append(cookiex[0] + "=" + cookiex[1]);
-			}
-			return sbRetval.toString();
+			return cookies;
 		} catch (IOException e) {
 			logger.error("Could not read cookies from IE: {}", f.getAbsolutePath(), e);
-			return "";
+			return new ArrayList<>();
 		}
 	}
 }

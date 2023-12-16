@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ import org.ini4j.Wini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 import ch.supertomcat.supertomcatutils.io.CopyUtil;
 
 /**
@@ -72,7 +74,7 @@ public final class FirefoxCookies {
 	 * @param cookieFilev3 CookieFile for Firefox Version 3 and higher
 	 * @return Cookies
 	 */
-	public static String getCookiesFromFirefox(String domain, String hosts[], String paths[], String cookieFile, String cookieFilev3) {
+	public static List<BrowserCookie> getCookiesFromFirefox(String domain, String hosts[], String paths[], String cookieFile, String cookieFilev3) {
 		logger.debug("Firefox: Cookiefile: " + cookieFile);
 		logger.debug("Firefox: Cookiefilev3: " + cookieFilev3);
 		File file = new File(cookieFile);
@@ -98,7 +100,7 @@ public final class FirefoxCookies {
 				return getCookiesFromFirefox3Sqlite(newCookieFilev3, domain, hosts, paths, firefoxDBLock, "Firefox: v3");
 			} catch (ClassNotFoundException | SQLException ex) {
 				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
-				return "";
+				return new ArrayList<>();
 			}
 		} else if (file.exists() && file.getName().endsWith(".txt")) {
 			logger.debug("Firefox: v2: Cookiefile exists, reading in the file...");
@@ -106,10 +108,10 @@ public final class FirefoxCookies {
 				return getCookiesFromFirefox2TextFile(cookieFile, domain, hosts, paths, firefoxDBLock, "Firefox: v2");
 			} catch (IOException ex) {
 				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
-				return "";
+				return new ArrayList<>();
 			}
 		}
-		return "";
+		return new ArrayList<>();
 	}
 
 	/**
@@ -124,9 +126,10 @@ public final class FirefoxCookies {
 	 * @return Cookies
 	 * @throws IOException
 	 */
-	public static String getCookiesFromFirefox2TextFile(String cookieFile, final String domain, String hosts[], String paths[], Object dbLockObject, String browserName) throws IOException {
+	public static List<BrowserCookie> getCookiesFromFirefox2TextFile(String cookieFile, final String domain, String hosts[], String paths[], Object dbLockObject,
+			String browserName) throws IOException {
 		try (FileInputStream in = new FileInputStream(cookieFile); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
-			List<String[]> v = new ArrayList<>();
+			List<BrowserCookie> cookies = new ArrayList<>();
 
 			String row = null;
 			while ((row = br.readLine()) != null) {
@@ -159,21 +162,19 @@ public final class FirefoxCookies {
 					}
 
 					if (matchedDomain && matchedPath) {
-						v.add(cookie);
+						BrowserCookie browserCookie = new BrowserCookie(cookie[5], cookie[6]);
+						browserCookie.setDomain(cookie[0]);
+						browserCookie.setPath(cookie[2]);
+						browserCookie.setExpiryDate(Instant.ofEpochSecond(Long.parseLong(cookie[4])));
+						browserCookie.setSecure("TRUE".equalsIgnoreCase(cookie[3]));
+						cookies.add(browserCookie);
 					}
 				}
 			}
 
-			logger.debug("Firefox: v2: Found cookies: " + v.size());
+			logger.debug("Firefox: v2: Found cookies: {}", cookies.size());
 
-			StringBuilder sbCookies = new StringBuilder();
-			for (String[] cookiex : v) {
-				if (sbCookies.length() > 0) {
-					sbCookies.append("; ");
-				}
-				sbCookies.append(cookiex[5] + "=" + cookiex[6]);
-			}
-			return sbCookies.toString();
+			return cookies;
 		} catch (IOException e) {
 			logger.error("Could not read cookies from file: {}", cookieFile, e);
 			throw e;
@@ -193,7 +194,7 @@ public final class FirefoxCookies {
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	public static String getCookiesFromFirefox3Sqlite(String cookieFilev3, final String domain, String hosts[], String paths[], Object dbLockObject,
+	public static List<BrowserCookie> getCookiesFromFirefox3Sqlite(String cookieFilev3, final String domain, String hosts[], String paths[], Object dbLockObject,
 			String browserName) throws ClassNotFoundException, SQLException {
 		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM moz_cookies WHERE (host = '" + domain + "' OR ");
 		for (int i = 0; i < hosts.length; i++) {
@@ -216,7 +217,7 @@ public final class FirefoxCookies {
 
 		Class.forName("org.sqlite.JDBC");
 
-		List<String[]> v = new ArrayList<>();
+		List<BrowserCookie> cookies = new ArrayList<>();
 
 		synchronized (dbLockObject) {
 			logger.debug(browserName + ": SQL-Query: " + sqlQuery);
@@ -235,18 +236,41 @@ public final class FirefoxCookies {
 							 * 8: isSecure
 							 * 9: isHttpOnly
 							 */
-							String[] cookie = new String[8];
-							cookie[0] = rs.getString("name");
-							cookie[1] = rs.getString("value");
-							cookie[2] = rs.getString("host");
-							cookie[3] = rs.getString("path");
-							cookie[4] = rs.getString("expiry");
-							cookie[5] = rs.getString("lastAccessed");
-							cookie[6] = rs.getString("isSecure");
-							cookie[7] = rs.getString("isHttpOnly");
-							v.add(cookie);
+							String name = rs.getString("name");
+							String value = rs.getString("value");
+							String host = rs.getString("host");
+							String path = rs.getString("path");
+
+							// Expiry in seconds
+							String strExpiry = rs.getString("expiry");
+							long expiry = Long.parseLong(strExpiry);
+							Instant expiryInstant = Instant.ofEpochSecond(expiry);
+
+							// Last Accessed is in milliseconds
+							@SuppressWarnings("unused")
+							String strLastAccessed = rs.getString("lastAccessed");
+
+							// creationTime is in milliseconds
+							String strCreationTime = rs.getString("creationTime");
+							long creationTime = Long.parseLong(strCreationTime);
+							Instant creationTimeInstant = Instant.ofEpochMilli(creationTime);
+
+							String strSecure = rs.getString("isSecure");
+							boolean secure = "1".equals(strSecure);
+							String strHttpOnly = rs.getString("isHttpOnly");
+							boolean httpOnly = "1".equals(strHttpOnly);
+
+							BrowserCookie cookie = new BrowserCookie(name, value);
+							cookie.setDomain(host);
+							cookie.setPath(path);
+							cookie.setExpiryDate(expiryInstant);
+							cookie.setCreationDate(creationTimeInstant);
+							cookie.setSecure(secure);
+							cookie.setHttpOnly(httpOnly);
+
+							cookies.add(cookie);
 						}
-						logger.debug(browserName + ": Found cookies: " + v.size());
+						logger.debug("{}: Found cookies: {}", browserName, cookies.size());
 					}
 				}
 			} catch (SQLException se) {
@@ -256,16 +280,8 @@ public final class FirefoxCookies {
 		}
 
 		// Sort Cookies
-		Collections.sort(v, cookieComparator);
-
-		StringBuilder sbCookies = new StringBuilder();
-		for (String[] cookiex : v) {
-			if (sbCookies.length() > 0) {
-				sbCookies.append("; ");
-			}
-			sbCookies.append(cookiex[0] + "=" + cookiex[1]);
-		}
-		return sbCookies.toString();
+		Collections.sort(cookies, cookieComparator);
+		return cookies;
 	}
 
 	/**
@@ -345,15 +361,15 @@ public final class FirefoxCookies {
 	/**
 	 * Comparator for cookies
 	 */
-	private static class FirefoxCookieComparator implements Comparator<String[]> {
+	private static class FirefoxCookieComparator implements Comparator<BrowserCookie> {
 		@Override
-		public int compare(String[] o1, String[] o2) {
-			int nameComp = o1[0].compareTo(o2[0]);
+		public int compare(BrowserCookie o1, BrowserCookie o2) {
+			int nameComp = o1.getName().compareTo(o2.getName());
 			if (nameComp == 0) {
 				// Cookies with longer paths should be before shorter paths
-				if (o1[3].length() > o2[3].length()) {
+				if (o1.getPath().length() > o2.getPath().length()) {
 					return -1;
-				} else if (o1[3].length() < o2[3].length()) {
+				} else if (o1.getPath().length() < o2.getPath().length()) {
 					return 1;
 				}
 
@@ -361,9 +377,9 @@ public final class FirefoxCookies {
 				 * If there is a cookie with same name and same domain just with . before, then the one
 				 * that better matches the actual domain should be before the other.
 				 */
-				if (o1[2].equals("." + o2[2])) {
+				if (o1.getDomain().equals("." + o2.getDomain())) {
 					return 1;
-				} else if (o2[2].equals("." + o1[2])) {
+				} else if (o2.getDomain().equals("." + o1.getDomain())) {
 					return -1;
 				}
 			}

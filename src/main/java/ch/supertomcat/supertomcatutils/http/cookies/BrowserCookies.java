@@ -2,8 +2,11 @@ package ch.supertomcat.supertomcatutils.http.cookies;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,12 +108,22 @@ public final class BrowserCookies {
 	 * @return Cookies
 	 */
 	public static String getCookies(String url, int browser) {
-		if (!cookieStrategies.containsKey(browser)) {
-			return "";
-		}
+		return convertToString(getBrowserCookies(url, browser));
+	}
 
+	/**
+	 * Returns the Cookies for an URL from the given Browser
+	 * 
+	 * @param url URL
+	 * @param browser Browser
+	 * @return Cookies
+	 */
+	public static List<BrowserCookie> getBrowserCookies(String url, int browser) {
+		if (!cookieStrategies.containsKey(browser)) {
+			return new ArrayList<>();
+		}
 		CookieStrategy cookieStrategy = cookieStrategies.get(browser);
-		return getCookies(url, cookieStrategy);
+		return getBrowserCookies(url, cookieStrategy);
 	}
 
 	/**
@@ -122,11 +135,23 @@ public final class BrowserCookies {
 	 * @return Cookies
 	 */
 	public static String getCookies(String url, int browser, Map<String, String> cookieStrategyOptions) {
+		return convertToString(getBrowserCookies(url, browser, cookieStrategyOptions));
+	}
+
+	/**
+	 * Returns the Cookies for an URL from the given Browser
+	 * 
+	 * @param url URL
+	 * @param browser Browser
+	 * @param cookieStrategyOptions Cookie Strategy Options
+	 * @return Cookies
+	 */
+	public static List<BrowserCookie> getBrowserCookies(String url, int browser, Map<String, String> cookieStrategyOptions) {
 		if (!cookieStrategies.containsKey(browser)) {
-			return "";
+			return new ArrayList<>();
 		}
 		CookieStrategy cookieStrategy = cookieStrategies.get(browser);
-		return getCookies(url, cookieStrategy, cookieStrategyOptions);
+		return getBrowserCookies(url, cookieStrategy, cookieStrategyOptions);
 	}
 
 	/**
@@ -137,7 +162,18 @@ public final class BrowserCookies {
 	 * @return Cookies
 	 */
 	public static String getCookies(String url, CookieStrategy cookieStrategy) {
-		return getCookies(url, cookieStrategy, new HashMap<>());
+		return convertToString(getBrowserCookies(url, cookieStrategy));
+	}
+
+	/**
+	 * Returns the Cookies for an URL
+	 * 
+	 * @param url URL
+	 * @param cookieStrategy Cookie Strategy
+	 * @return Cookies
+	 */
+	public static List<BrowserCookie> getBrowserCookies(String url, CookieStrategy cookieStrategy) {
+		return getBrowserCookies(url, cookieStrategy, new HashMap<>());
 	}
 
 	/**
@@ -149,11 +185,23 @@ public final class BrowserCookies {
 	 * @return Cookies
 	 */
 	public static String getCookies(String url, CookieStrategy cookieStrategy, Map<String, String> cookieStrategyOptions) {
-		URL completeURL = null;
+		return convertToString(getBrowserCookies(url, cookieStrategy, cookieStrategyOptions));
+	}
+
+	/**
+	 * Returns the Cookies for an URL
+	 * 
+	 * @param url URL
+	 * @param cookieStrategy Cookie Strategy
+	 * @param cookieStrategyOptions Cookie Strategy Options
+	 * @return Cookies
+	 */
+	public static List<BrowserCookie> getBrowserCookies(String url, CookieStrategy cookieStrategy, Map<String, String> cookieStrategyOptions) {
+		URL completeURL;
 		try {
 			completeURL = new URL(url);
 		} catch (MalformedURLException mue) {
-			return "";
+			return new ArrayList<>();
 		}
 
 		String domain = completeURL.getHost();
@@ -185,9 +233,24 @@ public final class BrowserCookies {
 		for (int i = 1; i < pathsArr.length; i++) {
 			paths[i] = paths[i - 1] + (i == 1 ? "" : "/") + pathsArr[i];
 		}
-
-		String cookies = cookieStrategy.getCookies(url, domain, hosts, paths, cookieStrategyOptions);
-		logger.debug("Cookies for '{}': {}", domain, cookies);
+		List<BrowserCookie> cookies = cookieStrategy.getCookies(url, domain, hosts, paths, cookieStrategyOptions);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Cookies for '{}': {}", domain, convertToString(cookies));
+		}
 		return cookies;
+	}
+
+	/**
+	 * Convert cookies to String
+	 * 
+	 * @param cookies Cookies
+	 * @return Cookies as String
+	 */
+	public static String convertToString(List<BrowserCookie> cookies) {
+		StringJoiner sjCookies = new StringJoiner("; ");
+		for (BrowserCookie cookie : cookies) {
+			sjCookies.add(cookie.getName() + "=" + cookie.getValue());
+		}
+		return sjCookies.toString();
 	}
 }

@@ -1,5 +1,8 @@
 package ch.supertomcat.supertomcatutils.http.cookies.opera.newformat;
 
+import java.util.List;
+
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 import ch.supertomcat.supertomcatutils.http.cookies.webkit.WebkitCookies;
 
 /**
@@ -24,7 +27,7 @@ public final class OperaNewCookies {
 	 * @param cookieFile CookieFile for Opera
 	 * @return Cookies
 	 */
-	public static String getCookiesFromOpera(String domain, String[] hosts, String[] paths, String cookieFile) {
+	public static List<BrowserCookie> getCookiesFromOpera(String domain, String[] hosts, String[] paths, String cookieFile) {
 		return WebkitCookies.getCookiesFromWebkit(domain, hosts, paths, cookieFile);
 	}
 

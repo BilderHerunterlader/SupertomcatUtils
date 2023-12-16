@@ -12,6 +12,7 @@ import org.ini4j.Wini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 import ch.supertomcat.supertomcatutils.http.cookies.firefox.FirefoxCookies;
 import ch.supertomcat.supertomcatutils.io.CopyUtil;
 
@@ -58,8 +59,7 @@ public final class PaleMoonCookies {
 	 * @param cookieFile CookieFile for PaleMoon
 	 * @return Cookies
 	 */
-	public static String getCookiesFromPaleMoon(String domain, String[] hosts, String[] paths, String cookieFile) {
-		String retval = "";
+	public static List<BrowserCookie> getCookiesFromPaleMoon(String domain, String[] hosts, String[] paths, String cookieFile) {
 		logger.debug("Pale Moon: Cookiefile: {}", cookieFile);
 		File file = new File(cookieFile);
 		if (file.exists() && file.getName().endsWith(".sqlite")) {
@@ -80,12 +80,13 @@ public final class PaleMoonCookies {
 			}
 
 			try {
-				retval = getCookiesFromPaleMoonSqlite(newCookieFile, domain, hosts, paths);
+				return getCookiesFromPaleMoonSqlite(newCookieFile, domain, hosts, paths);
 			} catch (ClassNotFoundException | SQLException ex) {
 				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
+				return new ArrayList<>();
 			}
 		}
-		return retval;
+		return new ArrayList<>();
 	}
 
 	/**
@@ -99,7 +100,7 @@ public final class PaleMoonCookies {
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	private static String getCookiesFromPaleMoonSqlite(String cookieFile, String domain, String[] hosts, String[] paths) throws ClassNotFoundException, SQLException {
+	private static List<BrowserCookie> getCookiesFromPaleMoonSqlite(String cookieFile, String domain, String[] hosts, String[] paths) throws ClassNotFoundException, SQLException {
 		return FirefoxCookies.getCookiesFromFirefox3Sqlite(cookieFile, domain, hosts, paths, paleMoonDBLock, "Pale Moon");
 	}
 

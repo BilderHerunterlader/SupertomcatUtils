@@ -1,8 +1,11 @@
 package ch.supertomcat.supertomcatutils.http.cookies.opera.oldformat;
 
 import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 import ch.supertomcat.supertomcatutils.http.cookies.opera.oldformat.containers.OperaCookie;
 import ch.supertomcat.supertomcatutils.http.cookies.opera.oldformat.containers.OperaCookieRoot;
 
@@ -25,19 +28,19 @@ public final class OperaCookies {
 	 * @param cookieFile
 	 * @return Cookies
 	 */
-	public static String getCookiesFromOpera(String domain, String hosts[], String paths[], String cookieFile) {
+	public static List<BrowserCookie> getCookiesFromOpera(String domain, String hosts[], String paths[], String cookieFile) {
 		if (cookieFile.isEmpty()) {
-			return "";
+			return new ArrayList<>();
 		}
 
 		OperaCookieRoot operaCookieRoot = new OperaCookieRoot(cookieFile);
 		if (!operaCookieRoot.read()) {
-			return "";
+			return new ArrayList<>();
 		}
 
 		List<OperaCookie> cookies = operaCookieRoot.getAllCookies();
 
-		StringBuilder sbCookies = new StringBuilder();
+		List<BrowserCookie> browserCookies = new ArrayList<>();
 		for (OperaCookie currentCookie : cookies) {
 			boolean matchedDomain = currentCookie.getDomain().equals(domain);
 			if (!matchedDomain) {
@@ -60,13 +63,15 @@ public final class OperaCookies {
 			}
 
 			if (matchedDomain && matchedPath) {
-				if (sbCookies.length() > 0) {
-					sbCookies.append("; ");
-				}
-				sbCookies.append(currentCookie.getName() + "=" + currentCookie.getValue());
+				BrowserCookie browserCookie = new BrowserCookie(currentCookie.getName(), currentCookie.getValue());
+				browserCookie.setDomain(currentCookie.getDomain());
+				browserCookie.setPath(currentCookie.getPath());
+				browserCookie.setSecure(currentCookie.isSecure());
+				browserCookie.setExpiryDate(Instant.ofEpochSecond(currentCookie.getExpires()));
+				browserCookies.add(browserCookie);
 			}
 		}
-		return sbCookies.toString();
+		return browserCookies;
 	}
 
 	/**

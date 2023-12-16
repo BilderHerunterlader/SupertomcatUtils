@@ -1,5 +1,7 @@
 package ch.supertomcat.supertomcatutils.http.cookies;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Map;
  */
 public class NoCookieStrategy implements CookieStrategy {
 	@Override
-	public String getCookies(String url, String domain, String[] hosts, String[] paths, Map<String, String> options) {
-		return "";
+	public List<BrowserCookie> getCookies(String url, String domain, String[] hosts, String[] paths, Map<String, String> options) {
+		return new ArrayList<>();
 	}
 }

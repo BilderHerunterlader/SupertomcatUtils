@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jna.platform.win32.Crypt32Util;
 
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 import ch.supertomcat.supertomcatutils.io.CopyUtil;
 
 /**
@@ -62,8 +64,7 @@ public class WebkitCookies {
 	 * @param cookieFile CookieFile for Opera
 	 * @return Cookies
 	 */
-	public static String getCookiesFromWebkit(String domain, String[] hosts, String[] paths, String cookieFile) {
-		String retval = "";
+	public static List<BrowserCookie> getCookiesFromWebkit(String domain, String[] hosts, String[] paths, String cookieFile) {
 		logger.debug("Cookiefile: {}", cookieFile);
 		File file = new File(cookieFile);
 
@@ -82,12 +83,11 @@ public class WebkitCookies {
 		}
 
 		try {
-			retval = getCookiesFromWebkitSqlite(newCookieFile, domain, hosts, paths, dbLock);
+			return getCookiesFromWebkitSqlite(newCookieFile, domain, hosts, paths, dbLock);
 		} catch (ClassNotFoundException | SQLException ex) {
 			logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
+			return new ArrayList<>();
 		}
-
-		return retval;
 	}
 
 	/**
@@ -102,7 +102,8 @@ public class WebkitCookies {
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	public static String getCookiesFromWebkitSqlite(String cookieFile, final String domain, String[] hosts, String[] paths, Object dbLockObject) throws ClassNotFoundException, SQLException {
+	public static List<BrowserCookie> getCookiesFromWebkitSqlite(String cookieFile, final String domain, String[] hosts, String[] paths,
+			Object dbLockObject) throws ClassNotFoundException, SQLException {
 		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM cookies WHERE (host_key = '" + domain + "' OR ");
 		for (int i = 0; i < hosts.length; i++) {
 			sbSQLQuery.append("host_key = '" + hosts[i] + "'");
@@ -124,7 +125,7 @@ public class WebkitCookies {
 
 		Class.forName("org.sqlite.JDBC");
 
-		List<String[]> v = new ArrayList<>();
+		List<BrowserCookie> cookies = new ArrayList<>();
 
 		synchronized (dbLockObject) {
 			logger.debug("SQL-Query: " + sqlQuery);
@@ -144,20 +145,45 @@ public class WebkitCookies {
 							 * 9: isHttpOnly
 							 * 10: encrypted value
 							 */
-							String[] cookie = new String[9];
-							cookie[0] = rs.getString("name");
-							cookie[1] = rs.getString("value");
-							cookie[2] = rs.getString("host_key");
-							cookie[3] = rs.getString("path");
-							cookie[4] = rs.getString("expires_utc");
-							cookie[5] = rs.getString("last_access_utc");
-							cookie[6] = rs.getString("secure");
-							cookie[7] = rs.getString("httponly");
+
+							String name = rs.getString("name");
+							String value = rs.getString("value");
+							String cookieDomain = rs.getString("host_key");
+							String path = rs.getString("path");
+
+							// expires_utc is in milliseconds
+							String strExpiryDate = rs.getString("expires_utc");
+							long expiryDate = Long.parseLong(strExpiryDate);
+							Instant expiryDateInstant = Instant.ofEpochMilli(expiryDate);
+
+							// last_access_utc is in milliseconds
+							@SuppressWarnings("unused")
+							String strLastAccess = rs.getString("last_access_utc");
+
+							String strSecure = rs.getString("secure");
+							boolean secure = "1".equals(strSecure);
+
+							String strHttpOnly = rs.getString("httponly");
+							boolean httpOnly = "1".equals(strHttpOnly);
+
 							byte[] encryptedValue = rs.getBytes("encrypted_value");
-							cookie[8] = decryptValue(encryptedValue, cookie[0], cookie[2]);
-							v.add(cookie);
+							String decryptedValue = decryptValue(encryptedValue, name, cookieDomain);
+
+							BrowserCookie cookie = new BrowserCookie(name, value);
+							cookie.setDomain(cookieDomain);
+							cookie.setPath(path);
+							cookie.setExpiryDate(expiryDateInstant);
+							cookie.setSecure(secure);
+							cookie.setHttpOnly(httpOnly);
+
+							// If encrypted value available overwrite value
+							if (decryptedValue != null) {
+								cookie.setValue(decryptedValue);
+							}
+
+							cookies.add(cookie);
 						}
-						logger.debug("Found cookies: " + v.size());
+						logger.debug("Found cookies: {}", cookies.size());
 					}
 				}
 			} catch (SQLException se) {
@@ -167,20 +193,8 @@ public class WebkitCookies {
 		}
 
 		// Sort Cookies
-		Collections.sort(v, cookieComparator);
-
-		StringBuilder sbCookies = new StringBuilder();
-		for (String[] cookiex : v) {
-			if (sbCookies.length() > 0) {
-				sbCookies.append("; ");
-			}
-			if (!cookiex[8].isEmpty()) {
-				sbCookies.append(cookiex[0] + "=" + cookiex[8]);
-			} else {
-				sbCookies.append(cookiex[0] + "=" + cookiex[1]);
-			}
-		}
-		return sbCookies.toString();
+		Collections.sort(cookies, cookieComparator);
+		return cookies;
 	}
 
 	/**
@@ -199,22 +213,22 @@ public class WebkitCookies {
 			return new String(decryptedData);
 		} else {
 			logger.error("Could not decrypt cookie value for cookie in domain '{}', because OS is not supported: {}", domain, cookieName);
-			return "";
+			return null;
 		}
 	}
 
 	/**
 	 * Comparator for cookies
 	 */
-	private static class WebkitCookieComparator implements Comparator<String[]> {
+	private static class WebkitCookieComparator implements Comparator<BrowserCookie> {
 		@Override
-		public int compare(String[] o1, String[] o2) {
-			int nameComp = o1[0].compareTo(o2[0]);
+		public int compare(BrowserCookie o1, BrowserCookie o2) {
+			int nameComp = o1.getName().compareTo(o2.getName());
 			if (nameComp == 0) {
 				// Cookies with longer paths should be before shorter paths
-				if (o1[3].length() > o2[3].length()) {
+				if (o1.getPath().length() > o2.getPath().length()) {
 					return -1;
-				} else if (o1[3].length() < o2[3].length()) {
+				} else if (o1.getPath().length() < o2.getPath().length()) {
 					return 1;
 				}
 
@@ -222,9 +236,9 @@ public class WebkitCookies {
 				 * If there is a cookie with same name and same domain just with . before, then the one
 				 * that better matches the actual domain should be before the other.
 				 */
-				if (o1[2].equals("." + o2[2])) {
+				if (o1.getDomain().equals("." + o2.getDomain())) {
 					return 1;
-				} else if (o2[2].equals("." + o1[2])) {
+				} else if (o2.getDomain().equals("." + o1.getDomain())) {
 					return -1;
 				}
 			}

@@ -1,7 +1,9 @@
 package ch.supertomcat.supertomcatutils.http.cookies.opera.newformat;
 
+import java.util.List;
 import java.util.Map;
 
+import ch.supertomcat.supertomcatutils.http.cookies.BrowserCookie;
 import ch.supertomcat.supertomcatutils.http.cookies.CookieStrategy;
 
 /**
@@ -14,7 +16,7 @@ public class OperaNewCookieStrategy implements CookieStrategy {
 	public static final String COOKIE_FILE_OPERA_NEW_KEY = "cookieFileOperaNew";
 
 	@Override
-	public String getCookies(String url, String domain, String[] hosts, String[] paths, Map<String, String> options) {
+	public List<BrowserCookie> getCookies(String url, String domain, String[] hosts, String[] paths, Map<String, String> options) {
 		String cookieFileOpera;
 
 		if (options.containsKey(COOKIE_FILE_OPERA_NEW_KEY)) {
