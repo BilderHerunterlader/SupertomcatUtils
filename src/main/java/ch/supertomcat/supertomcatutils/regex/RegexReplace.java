@@ -37,10 +37,22 @@ public class RegexReplace {
 	 * @throws PatternSyntaxException
 	 */
 	public RegexReplace(String search, String replace) throws PatternSyntaxException {
+		this(search, replace, true);
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param search Regex Search Pattern
+	 * @param replace Replacement String
+	 * @param compilePattern True if pattern should be compiled, false otherwise
+	 * @throws PatternSyntaxException
+	 */
+	public RegexReplace(String search, String replace, boolean compilePattern) throws PatternSyntaxException {
 		if (search == null || replace == null) {
 			throw new IllegalArgumentException("Search or replace was null: Search: " + search + ", Replace: " + replace);
 		}
-		setSearch(search);
+		setSearch(search, compilePattern);
 		setReplace(replace);
 	}
 
@@ -60,10 +72,25 @@ public class RegexReplace {
 	 * @throws PatternSyntaxException
 	 */
 	public void setSearch(String search) throws PatternSyntaxException {
+		setSearch(search, true);
+	}
+
+	/**
+	 * Sets the Search-String and try to compile the Pattern. Note: If compilePattern is false, then the pattern Member is set to null.
+	 * 
+	 * @param search Search-String
+	 * @param compilePattern True if pattern should be compiled, false otherwise
+	 * @throws PatternSyntaxException
+	 */
+	public void setSearch(String search, boolean compilePattern) throws PatternSyntaxException {
 		if (search == null) {
 			throw new IllegalArgumentException("Search was null: Search: " + search);
 		}
-		this.pattern = Pattern.compile(search);
+		if (compilePattern) {
+			this.pattern = Pattern.compile(search);
+		} else {
+			this.pattern = null;
+		}
 		this.search = search;
 	}
 
