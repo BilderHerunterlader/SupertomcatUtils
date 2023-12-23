@@ -196,14 +196,15 @@ public final class FirefoxCookies {
 	 */
 	public static List<BrowserCookie> getCookiesFromFirefox3Sqlite(String cookieFilev3, final String domain, String hosts[], String paths[], Object dbLockObject,
 			String browserName) throws ClassNotFoundException, SQLException {
-		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM moz_cookies WHERE (host = '" + domain + "' OR ");
+		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM moz_cookies WHERE (host = '" + domain + "'");
 		for (int i = 0; i < hosts.length; i++) {
+			sbSQLQuery.append(" OR ");
 			sbSQLQuery.append("host = '" + hosts[i] + "'");
-			if (i < hosts.length - 1) {
-				sbSQLQuery.append(" OR ");
-			}
 		}
-		sbSQLQuery.append(") AND (");
+		sbSQLQuery.append(")");
+		if (paths.length > 0) {
+			sbSQLQuery.append(" AND (");
+		}
 		for (int i = 0; i < paths.length; i++) {
 			sbSQLQuery.append("path = '" + paths[i] + "'");
 			sbSQLQuery.append(" OR ");
@@ -212,7 +213,9 @@ public final class FirefoxCookies {
 				sbSQLQuery.append(" OR ");
 			}
 		}
-		sbSQLQuery.append(")");
+		if (paths.length > 0) {
+			sbSQLQuery.append(")");
+		}
 		String sqlQuery = sbSQLQuery.toString();
 
 		Class.forName("org.sqlite.JDBC");

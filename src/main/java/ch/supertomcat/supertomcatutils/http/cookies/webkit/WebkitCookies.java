@@ -104,14 +104,15 @@ public class WebkitCookies {
 	 */
 	public static List<BrowserCookie> getCookiesFromWebkitSqlite(String cookieFile, final String domain, String[] hosts, String[] paths,
 			Object dbLockObject) throws ClassNotFoundException, SQLException {
-		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM cookies WHERE (host_key = '" + domain + "' OR ");
+		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM cookies WHERE (host_key = '" + domain + "'");
 		for (int i = 0; i < hosts.length; i++) {
+			sbSQLQuery.append(" OR ");
 			sbSQLQuery.append("host_key = '" + hosts[i] + "'");
-			if (i < hosts.length - 1) {
-				sbSQLQuery.append(" OR ");
-			}
 		}
-		sbSQLQuery.append(") AND (");
+		sbSQLQuery.append(")");
+		if (paths.length > 0) {
+			sbSQLQuery.append(" AND (");
+		}
 		for (int i = 0; i < paths.length; i++) {
 			sbSQLQuery.append("path = '" + paths[i] + "'");
 			sbSQLQuery.append(" OR ");
@@ -120,7 +121,9 @@ public class WebkitCookies {
 				sbSQLQuery.append(" OR ");
 			}
 		}
-		sbSQLQuery.append(")");
+		if (paths.length > 0) {
+			sbSQLQuery.append(")");
+		}
 		String sqlQuery = sbSQLQuery.toString();
 
 		Class.forName("org.sqlite.JDBC");
