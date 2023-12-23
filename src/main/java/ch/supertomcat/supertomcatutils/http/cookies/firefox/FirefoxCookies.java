@@ -75,8 +75,8 @@ public final class FirefoxCookies {
 	 * @return Cookies
 	 */
 	public static List<BrowserCookie> getCookiesFromFirefox(String domain, String hosts[], String paths[], String cookieFile, String cookieFilev3) {
-		logger.debug("Firefox: Cookiefile: " + cookieFile);
-		logger.debug("Firefox: Cookiefilev3: " + cookieFilev3);
+		logger.debug("Firefox: Cookiefile: {}", cookieFile);
+		logger.debug("Firefox: Cookiefilev3: {}", cookieFilev3);
 		File file = new File(cookieFile);
 		File filev3 = new File(cookieFilev3);
 		if (filev3.exists() && filev3.getName().endsWith(".sqlite")) {
@@ -105,7 +105,7 @@ public final class FirefoxCookies {
 		} else if (file.exists() && file.getName().endsWith(".txt")) {
 			logger.debug("Firefox: v2: Cookiefile exists, reading in the file...");
 			try {
-				return getCookiesFromFirefox2TextFile(cookieFile, domain, hosts, paths, firefoxDBLock, "Firefox: v2");
+				return getCookiesFromFirefox2TextFile(cookieFile, domain, hosts, paths, "Firefox: v2");
 			} catch (IOException ex) {
 				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
 				return new ArrayList<>();
@@ -121,13 +121,11 @@ public final class FirefoxCookies {
 	 * @param domain Domain
 	 * @param hosts Hosts-Array
 	 * @param paths Paths-Array
-	 * @param dbLockObject Lock Object for reading database
 	 * @param browserName Browser Name for Logging
 	 * @return Cookies
 	 * @throws IOException
 	 */
-	public static List<BrowserCookie> getCookiesFromFirefox2TextFile(String cookieFile, final String domain, String hosts[], String paths[], Object dbLockObject,
-			String browserName) throws IOException {
+	public static List<BrowserCookie> getCookiesFromFirefox2TextFile(String cookieFile, final String domain, String[] hosts, String[] paths, String browserName) throws IOException {
 		try (FileInputStream in = new FileInputStream(cookieFile); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
 			List<BrowserCookie> cookies = new ArrayList<>();
 
@@ -172,7 +170,7 @@ public final class FirefoxCookies {
 				}
 			}
 
-			logger.debug("Firefox: v2: Found cookies: {}", cookies.size());
+			logger.debug("{}: Found cookies: {}", browserName, cookies.size());
 
 			return cookies;
 		} catch (IOException e) {
@@ -194,7 +192,7 @@ public final class FirefoxCookies {
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	public static List<BrowserCookie> getCookiesFromFirefox3Sqlite(String cookieFilev3, final String domain, String hosts[], String paths[], Object dbLockObject,
+	public static List<BrowserCookie> getCookiesFromFirefox3Sqlite(String cookieFilev3, final String domain, String[] hosts, String[] paths, Object dbLockObject,
 			String browserName) throws ClassNotFoundException, SQLException {
 		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM moz_cookies WHERE (host = '" + domain + "'");
 		for (int i = 0; i < hosts.length; i++) {

@@ -226,12 +226,11 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 * @param validateSchema True if schema should be validated, false otherwise. Schema should only be validated for the default settings file and not for user
 	 *        settings files, because also settings files created with older versions of the program must be loaded.
 	 * @return Settings
-	 * @throws IOException
 	 * @throws SAXException
 	 * @throws JAXBException
 	 */
 	@SuppressWarnings("unchecked")
-	protected synchronized T loadSettingsFile(InputStream in, boolean validateSchema) throws IOException, SAXException, JAXBException {
+	protected synchronized T loadSettingsFile(InputStream in, boolean validateSchema) throws SAXException, JAXBException {
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		if (validateSchema) {
 			SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -248,11 +247,10 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 * @param out OutputStream
 	 * @param validateSchema True if schema should be validated, false otherwise. Schema should only be validated for the default settings file and not for user
 	 *        settings files, because also settings files created with older versions of the program must be loaded.
-	 * @throws IOException
 	 * @throws SAXException
 	 * @throws JAXBException
 	 */
-	protected synchronized void writeSettingsFile(T settings, OutputStream out, boolean validateSchema) throws IOException, SAXException, JAXBException {
+	protected synchronized void writeSettingsFile(T settings, OutputStream out, boolean validateSchema) throws SAXException, JAXBException {
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		if (validateSchema) {

@@ -134,6 +134,9 @@ public final class TableUtil {
 	 * @param map Map
 	 */
 	public static void applyColWidths(JTable table, Map<String, Integer> map) {
+		if (map == null) {
+			return;
+		}
 		TableColumn col;
 		for (Map.Entry<String, Integer> entry : map.entrySet()) {
 			String columnName = entry.getKey();
