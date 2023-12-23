@@ -383,7 +383,7 @@ public abstract class ApplicationMain {
 				System.out.print(ApplicationProperties.getProperty("ApplicationVersion"));
 				System.exit(0);
 			} else if (arg.equalsIgnoreCase("-versionNumber")) {
-				System.out.print(ApplicationProperties.getProperty("ApplicationVersion").replaceAll("\\.", ""));
+				System.out.print(ApplicationProperties.getProperty("ApplicationVersion").replace(".", ""));
 				System.exit(0);
 			} else if (arg.equalsIgnoreCase("-help")) {
 				String help = ApplicationProperties.getProperty("ApplicationName") + " v" + ApplicationProperties.getProperty("ApplicationVersion") + "\n\n";

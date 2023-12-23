@@ -553,7 +553,7 @@ public final class FileUtil {
 				if (matcherWindowsDriveLetter.matches()) {
 					String driveLetter = result.substring(0, 2);
 					String remainingPath = result.substring(2);
-					remainingPath = remainingPath.replaceAll("[:]", "");
+					remainingPath = remainingPath.replace(":", "");
 					result = driveLetter + remainingPath;
 				}
 			}
