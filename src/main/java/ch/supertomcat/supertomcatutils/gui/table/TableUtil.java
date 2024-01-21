@@ -51,14 +51,20 @@ public final class TableUtil {
 	 * @return Map with column names as keys and int values
 	 */
 	public static Map<String, Integer> parseColWidthsSetting(String setting) {
-		Map<String, Integer> map = new HashMap<>();
+		if (setting == null || setting.isEmpty()) {
+			return null;
+		}
 
 		String[] columns = setting.split("\\|");
 		if (columns == null || columns.length == 0) {
 			return null;
 		}
 
+		Map<String, Integer> map = new HashMap<>();
 		for (String col : columns) {
+			if (col.isEmpty()) {
+				continue;
+			}
 			String[] parts = col.split("=");
 			if (parts == null || parts.length != 2) {
 				logger.error("Could not parse column setting '{}' in setting String: {}", col, setting);
