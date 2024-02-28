@@ -8,7 +8,7 @@
 	</parent>
 	
 	<artifactId>supertomcatutils</artifactId>
-	<version>1.0.30</version>
+	<version>1.0.31-SNAPSHOT</version>
 	<name>SupertomcatUtils</name>
 	<description>Library which provides common code used by BilderHerunterlader and BilderUploader</description>
 	<url>https://github.com/BilderHerunterlader/SupertomcatUtils</url>
