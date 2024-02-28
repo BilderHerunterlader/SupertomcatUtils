@@ -395,8 +395,19 @@ public final class FileUtil {
 	 * @return Reduced Path
 	 */
 	public static String reducePathLength(String folder) {
+		return reducePathLength(folder, PATH_WITHOUT_FILENAME_LENGTH_LIMIT);
+	}
+
+	/**
+	 * Method to reduce length of path (without filename), because paths in Windows Explorer can only be have 255 chars.
+	 * 
+	 * @param folder Path without Filename
+	 * @param lengthLimit Limit
+	 * @return Reduced Path
+	 */
+	public static String reducePathLength(String folder, int lengthLimit) {
 		int folderLength = folder.length();
-		if (folderLength <= PATH_WITHOUT_FILENAME_LENGTH_LIMIT) {
+		if (folderLength <= lengthLimit) {
 			return folder;
 		}
 
@@ -408,9 +419,9 @@ public final class FileUtil {
 			/*
 			 * Reduce one more character and add path separater again later
 			 */
-			limit = PATH_WITHOUT_FILENAME_LENGTH_LIMIT - 1;
+			limit = lengthLimit - 1;
 		} else {
-			limit = PATH_WITHOUT_FILENAME_LENGTH_LIMIT;
+			limit = lengthLimit;
 		}
 		if (limit > folder.length()) {
 			limit = folder.length();
@@ -433,7 +444,18 @@ public final class FileUtil {
 	 * @return Reduced Filename
 	 */
 	public static String reduceFilenameLength(String filename) {
-		if (filename.length() <= FILENAME_LENGTH_LIMIT) {
+		return reduceFilenameLength(filename, FILENAME_LENGTH_LIMIT);
+	}
+
+	/**
+	 * Method to reduce length of filename, because paths in Windows Explorer can only be have 255 chars.
+	 * 
+	 * @param filename Filename
+	 * @param lengthLimit Limit
+	 * @return Reduced Filename
+	 */
+	public static String reduceFilenameLength(String filename, int lengthLimit) {
+		if (filename.length() <= lengthLimit) {
 			return filename;
 		}
 
@@ -441,7 +463,7 @@ public final class FileUtil {
 		String ext = getFileExtension(filename);
 		int extLength = !ext.isEmpty() ? ext.length() + 1 : 0;
 
-		int limit = FILENAME_LENGTH_LIMIT - extLength;
+		int limit = lengthLimit - extLength;
 		if (limit < 1) {
 			// Prevent empty filename prefix
 			limit = 1;
