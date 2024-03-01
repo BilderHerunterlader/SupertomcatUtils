@@ -5,10 +5,12 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import javax.swing.DefaultRowSorter;
 import javax.swing.JButton;
@@ -52,12 +54,12 @@ public final class TableUtil {
 	 */
 	public static Map<String, Integer> parseColWidthsSetting(String setting) {
 		if (setting == null || setting.isEmpty()) {
-			return null;
+			return Collections.emptyMap();
 		}
 
 		String[] columns = setting.split("\\|");
 		if (columns == null || columns.length == 0) {
-			return null;
+			return Collections.emptyMap();
 		}
 
 		Map<String, Integer> map = new HashMap<>();
@@ -90,16 +92,15 @@ public final class TableUtil {
 	 * @return Serialized column widths
 	 */
 	public static String serializeColWidthSetting(Map<String, Integer> map) {
-		StringBuilder sb = new StringBuilder();
-
-		for (Map.Entry<String, Integer> entry : map.entrySet()) {
-			if (sb.length() > 0) {
-				sb.append("|");
-			}
-			sb.append(entry.getKey() + "=" + entry.getValue());
+		if (map == null) {
+			return "";
 		}
 
-		return sb.toString();
+		StringJoiner sj = new StringJoiner("|");
+		for (Map.Entry<String, Integer> entry : map.entrySet()) {
+			sj.add(entry.getKey() + "=" + entry.getValue());
+		}
+		return sj.toString();
 	}
 
 	/**
@@ -107,19 +108,14 @@ public final class TableUtil {
 	 * @return Serialized column widths
 	 */
 	public static String serializeColWidthSetting(JTable table) {
-		StringBuilder sb = new StringBuilder();
-
+		StringJoiner sj = new StringJoiner("|");
 		Enumeration<TableColumn> en = table.getColumnModel().getColumns();
 		TableColumn col;
 		while (en.hasMoreElements()) {
 			col = en.nextElement();
-			if (sb.length() > 0) {
-				sb.append("|");
-			}
-			sb.append(col.getIdentifier() + "=" + col.getWidth());
+			sj.add(col.getIdentifier() + "=" + col.getWidth());
 		}
-
-		return sb.toString();
+		return sj.toString();
 	}
 
 	/**
@@ -184,8 +180,11 @@ public final class TableUtil {
 	 * @param map Map
 	 */
 	public static void applyTableSortOrder(JTable table, Map<String, Integer> map) {
-		List<RowSorter.SortKey> sortKeys = new ArrayList<>();
+		if (map == null) {
+			return;
+		}
 
+		List<RowSorter.SortKey> sortKeys = new ArrayList<>();
 		for (Map.Entry<String, Integer> entry : map.entrySet()) {
 			String columnName = entry.getKey();
 			int sortOrder = entry.getValue();
@@ -205,6 +204,9 @@ public final class TableUtil {
 
 		if (!sortKeys.isEmpty()) {
 			RowSorter<? extends TableModel> sorter = table.getRowSorter();
+			if (sorter == null) {
+				return;
+			}
 			sorter.setSortKeys(sortKeys);
 			if (sorter instanceof DefaultRowSorter) {
 				((DefaultRowSorter<?, ?>)sorter).sort();
@@ -217,18 +219,18 @@ public final class TableUtil {
 	 * @return Serialized SortOrders
 	 */
 	public static String serializeTableSortOrderSetting(JTable table) {
-		StringBuilder sb = new StringBuilder();
+		RowSorter<? extends TableModel> sorter = table.getRowSorter();
+		if (sorter == null) {
+			return "";
+		}
 
-		List<? extends SortKey> sortKeys = table.getRowSorter().getSortKeys();
+		StringJoiner sj = new StringJoiner("|");
+		List<? extends SortKey> sortKeys = sorter.getSortKeys();
 		for (SortKey sortKey : sortKeys) {
 			int columnIndex = sortKey.getColumn();
 			TableColumn col = table.getColumnModel().getColumn(columnIndex);
 
 			SortOrder so = sortKey.getSortOrder();
-
-			if (sb.length() > 0) {
-				sb.append("|");
-			}
 
 			/*
 			 * 0 = unsorted
@@ -242,10 +244,10 @@ public final class TableUtil {
 			} else if (so == SortOrder.DESCENDING) {
 				sortOrder = 2;
 			}
-			sb.append(col.getIdentifier() + "=" + sortOrder);
+			sj.add(col.getIdentifier() + "=" + sortOrder);
 		}
 
-		return sb.toString();
+		return sj.toString();
 	}
 
 	/**
