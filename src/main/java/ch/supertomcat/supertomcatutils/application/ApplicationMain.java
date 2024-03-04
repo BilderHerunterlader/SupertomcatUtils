@@ -22,6 +22,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.Platform;
+
 import ch.supertomcat.supertomcatutils.io.FileUtil;
 
 /**
@@ -128,10 +130,17 @@ public abstract class ApplicationMain {
 	 */
 	public void start(String[] args) {
 		initializeApplicationProperties();
-		initializeJarFilenameAndApplicationPathProperties();
+
+		String jarFilename = getJarFilename();
+		String applicationPath = getApplicationPath();
+
+		initializeJarFilenameAndApplicationPathProperties(jarFilename, applicationPath);
 
 		String programUserDir = System.getProperty("user.home") + FileUtil.FILE_SEPERATOR + "." + ApplicationProperties.getProperty("ApplicationShortName") + FileUtil.FILE_SEPERATOR;
 		initializeProfileAndLogsPathProperties(programUserDir);
+
+		initializeProgramDataPathProperties(applicationPath, programUserDir);
+
 		initializeAdditionalPathProperties(programUserDir);
 
 		parseDefaultCommandLine(args);
@@ -208,50 +217,60 @@ public abstract class ApplicationMain {
 	 * @return True if application could be restarted, false otherwise
 	 */
 	protected boolean restartApplication() {
-		if (!ApplicationProperties.getProperty("JarFilename").isEmpty()) {
-			try {
-				String applicationAbsolutePath = new File(ApplicationProperties.getProperty("ApplicationPath")).getAbsolutePath();
-				if (!applicationAbsolutePath.endsWith(FileUtil.FILE_SEPERATOR)) {
-					applicationAbsolutePath += FileUtil.FILE_SEPERATOR;
+		String jarFilename = ApplicationProperties.getProperty("JarFilename");
+		if (jarFilename == null || jarFilename.isEmpty()) {
+			LoggerFactory.getLogger(getClass()).error("Could not restart application: JarFilename Application Property is null or empty: {}", jarFilename);
+			return false;
+		}
+
+		try {
+			String applicationAbsolutePath = new File(ApplicationProperties.getProperty("ApplicationPath")).getAbsolutePath();
+			if (!applicationAbsolutePath.endsWith(FileUtil.FILE_SEPERATOR)) {
+				applicationAbsolutePath += FileUtil.FILE_SEPERATOR;
+			}
+
+			String jreBinPath = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR;
+
+			String jreJavaw = jreBinPath + "javaw";
+			String jreJava = jreBinPath + "java";
+
+			File fJreJavaw;
+			File fJreJava;
+			if (Platform.isWindows()) {
+				fJreJavaw = new File(jreJavaw + ".exe");
+				fJreJava = new File(jreJava + ".exe");
+			} else {
+				fJreJavaw = new File(jreJavaw);
+				fJreJava = new File(jreJava);
+			}
+
+			List<String> arguments = new ArrayList<>();
+
+			if (fJreJavaw.exists()) {
+				arguments.add(jreJavaw);
+			} else {
+				if (fJreJava.exists()) {
+					arguments.add(jreJava);
 				}
+			}
 
-				String jreJavaw = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR + "javaw";
-				String jreJava = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR + "java";
-
-				String os = System.getProperty("os.name").toLowerCase();
-
-				File fJreJavaw = new File(os.contains("windows") ? jreJavaw + ".exe" : jreJavaw);
-				File fJreJava = new File(os.contains("windows") ? jreJava + ".exe" : jreJava);
-
-				List<String> arguments = new ArrayList<>();
-
-				if (fJreJavaw.exists()) {
-					arguments.add(jreJavaw);
-				} else {
-					if (fJreJava.exists()) {
-						arguments.add(jreJava);
-					}
-				}
-
-				if (arguments.isEmpty()) {
-					return false;
-				}
-
-				arguments.add("-jar");
-				arguments.add(applicationAbsolutePath + ApplicationProperties.getProperty("JarFilename"));
-
-				new ProcessBuilder(arguments).start();
-
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-				}
-				return true;
-			} catch (Exception e) {
-				LoggerFactory.getLogger(getClass()).error("Could not restart application", e);
+			if (arguments.isEmpty()) {
+				LoggerFactory.getLogger(getClass()).error("Could not restart application: Could not find java executable");
 				return false;
 			}
-		} else {
+
+			arguments.add("-jar");
+			arguments.add(applicationAbsolutePath + ApplicationProperties.getProperty("JarFilename"));
+
+			new ProcessBuilder(arguments).start();
+
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+			}
+			return true;
+		} catch (Exception e) {
+			LoggerFactory.getLogger(getClass()).error("Could not restart application", e);
 			return false;
 		}
 	}
@@ -280,15 +299,33 @@ public abstract class ApplicationMain {
 	}
 
 	/**
-	 * Initialize JarFilename and ApplicationPath properties
+	 * Get Jar Filename
+	 * 
+	 * @return Jar Filename
 	 */
-	protected void initializeJarFilenameAndApplicationPathProperties() {
-		String jarFilename = ApplicationUtil.getThisApplicationsJarFilename(mainClass);
-		ApplicationProperties.setProperty("JarFilename", jarFilename);
+	protected String getJarFilename() {
+		return ApplicationUtil.getThisApplicationsJarFilename(mainClass);
+	}
 
-		// Geth the program directory
-		String appPath = ApplicationUtil.getThisApplicationsPath(!jarFilename.isEmpty() ? jarFilename : ApplicationProperties.getProperty("ApplicationShortName") + ".jar");
-		ApplicationProperties.setProperty("ApplicationPath", appPath);
+	/**
+	 * Application Path
+	 * 
+	 * @return Application Path
+	 */
+	protected String getApplicationPath() {
+		String jarFilename = ApplicationUtil.getThisApplicationsJarFilename(mainClass);
+		return ApplicationUtil.getThisApplicationsPath(!jarFilename.isEmpty() ? jarFilename : ApplicationProperties.getProperty("ApplicationShortName") + ".jar");
+	}
+
+	/**
+	 * Initialize JarFilename and ApplicationPath properties
+	 * 
+	 * @param jarFilename Jar Filename
+	 * @param applicationPath Application Path
+	 */
+	protected void initializeJarFilenameAndApplicationPathProperties(String jarFilename, String applicationPath) {
+		ApplicationProperties.setProperty("JarFilename", jarFilename);
+		ApplicationProperties.setProperty("ApplicationPath", applicationPath);
 	}
 
 	/**
@@ -299,6 +336,28 @@ public abstract class ApplicationMain {
 	protected void initializeProfileAndLogsPathProperties(String programUserDir) {
 		ApplicationProperties.setProperty("ProfilePath", programUserDir);
 		ApplicationProperties.setProperty("LogsPath", programUserDir);
+	}
+
+	/**
+	 * Initialize ProfilePath and LogsPath properties
+	 * 
+	 * @param applicationPath Application Path
+	 * @param programUserDir Program User Directory
+	 */
+	protected void initializeProgramDataPathProperties(String applicationPath, String programUserDir) {
+		String programDataPath;
+		if (Platform.isWindows()) {
+			String programDataEnvPath = System.getenv("ProgramData");
+			if (programDataEnvPath != null) {
+				programDataPath = programDataEnvPath + FileUtil.FILE_SEPERATOR + ApplicationProperties.getProperty("ApplicationName") + FileUtil.FILE_SEPERATOR;
+			} else {
+				programDataPath = applicationPath;
+			}
+		} else {
+			programDataPath = applicationPath;
+		}
+
+		ApplicationProperties.setProperty("ProgramDataPath", programDataPath);
 	}
 
 	/**
