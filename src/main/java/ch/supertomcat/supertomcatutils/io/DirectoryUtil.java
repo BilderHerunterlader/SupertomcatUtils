@@ -75,7 +75,7 @@ public final class DirectoryUtil {
 	}
 
 	/**
-	 * Clear Directory recursive
+	 * Delete Directory recursive
 	 * 
 	 * @param directory Directory
 	 * @param deleteGivenDirectory True if the given directory should also be deleted, false otherwise
