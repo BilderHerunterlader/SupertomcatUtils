@@ -3,15 +3,22 @@ package ch.supertomcat.supertomcatutils.gui;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
 /**
  * Class which provides methods to set the dimension and position of windows in the middle of the screen
  * or in the middle of another window
  */
 public final class PositionUtil {
+
 	/**
 	 * Constructor
 	 */
@@ -93,6 +100,48 @@ public final class PositionUtil {
 	}
 
 	/**
+	 * Get intersection of device and bounds
+	 * 
+	 * @param device Device
+	 * @param bounds Bounds
+	 * @return Intersection or empty rectangle
+	 */
+	private static Rectangle getIntersection(GraphicsDevice device, Rectangle bounds) {
+		return device.getDefaultConfiguration().getBounds().intersection(bounds);
+	}
+
+	/**
+	 * Get intersection squared of device and bounds
+	 * 
+	 * @param device Device
+	 * @param bounds Bounds
+	 * @return Intersection or empty rectangle
+	 */
+	private static long getIntersectionSquared(GraphicsDevice device, Rectangle bounds) {
+		Rectangle intersection = getIntersection(device, bounds);
+		return Math.abs((long)intersection.width * intersection.height);
+	}
+
+	/**
+	 * Returns the screen device of the given bounds or null if not found
+	 * 
+	 * @param bounds Bounds
+	 * @return Screen device of the given bounds or null if not found
+	 */
+	public static GraphicsDevice getScreenDeviceOfComponent(Rectangle bounds) {
+		if (bounds == null) {
+			return null;
+		}
+
+		Predicate<GraphicsDevice> containsBoundsFilter = device -> device.getDefaultConfiguration().getBounds().intersects(bounds);
+		Comparator<GraphicsDevice> highestIntersectionComparator = (first, second) -> Long.compare(getIntersectionSquared(first, bounds), getIntersectionSquared(second, bounds));
+		BinaryOperator<GraphicsDevice> biggestIntersectionReduction = (first, second) -> second;
+
+		return Arrays.stream(GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()).filter(containsBoundsFilter).sorted(highestIntersectionComparator)
+				.reduce(biggestIntersectionReduction).orElse(null);
+	}
+
+	/**
 	 * Center point of bounds
 	 * 
 	 * @param bounds Bounds
@@ -113,5 +162,25 @@ public final class PositionUtil {
 	 */
 	public static Point getCenterPoint(int x, int y, int width, int height) {
 		return new Point(x + width / 2, y + height / 2);
+	}
+
+	/**
+	 * Get window scaling
+	 * 
+	 * @param device Device
+	 * @return Window scaling
+	 */
+	public static double getWindowScaling(GraphicsDevice device) {
+		return device.getDefaultConfiguration().getDefaultTransform().getScaleX();
+	}
+
+	/**
+	 * Check if scaling needed
+	 * 
+	 * @param windowScaling Window scaling value
+	 * @return True if scaling needed, false otherwise
+	 */
+	public static boolean checkWindowScalingNeeded(double windowScaling) {
+		return BigDecimal.valueOf(windowScaling).compareTo(BigDecimal.ONE) > 0;
 	}
 }

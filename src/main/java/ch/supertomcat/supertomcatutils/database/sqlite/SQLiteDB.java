@@ -10,7 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.JOptionPane;
-import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import ch.supertomcat.supertomcatutils.application.ApplicationProperties;
 import ch.supertomcat.supertomcatutils.application.ApplicationUtil;
 import ch.supertomcat.supertomcatutils.gui.Localization;
 import ch.supertomcat.supertomcatutils.io.CopyUtil;
+import jakarta.xml.bind.JAXBException;
 
 /**
  * Class for Sqlite Database Connections
