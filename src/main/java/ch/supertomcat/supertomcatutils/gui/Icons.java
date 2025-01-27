@@ -1,10 +1,14 @@
 package ch.supertomcat.supertomcatutils.gui;
 
+import java.awt.Component;
 import java.awt.Image;
+import java.awt.MediaTracker;
 import java.awt.Toolkit;
+import java.awt.image.BaseMultiResolutionImage;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
 
@@ -18,6 +22,21 @@ public final class Icons {
 	private static final String APPL_ICON_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/%s";
 	private static final String APPL_ICON_SIZE_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/%dx%d/%s";
 	private static final String TANGO_ICON_RESOURCE_FORMAT = "/org/freedesktop/tango/%dx%d/%s";
+
+	private static final int[] TANGO_ICON_SIZES = { 16, 22, 32 };
+
+	private static final Component MEDIA_TRACKER_COMPONENT = new Component() {
+
+		/**
+		 * serialVersionUID
+		 */
+		private static final long serialVersionUID = 1L;
+		// Empty Component
+	};
+
+	private static final MediaTracker MEDIA_TRACKER = new MediaTracker(MEDIA_TRACKER_COMPONENT);
+
+	private static int mediaTrackerID = 0;
 
 	/**
 	 * Resources
@@ -48,77 +67,137 @@ public final class Icons {
 	}
 
 	/**
-	 * Returns an ImageIcon for the given resource or null
+	 * @return Next Media Tracker ID
+	 */
+	private static int getNextMediaTrackerID() {
+		synchronized (MEDIA_TRACKER) {
+			return ++mediaTrackerID;
+		}
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
 	 * 
 	 * @param resource Resource
 	 * @param size Size
 	 * @return ImageIcon
 	 */
-	public static synchronized ImageIcon getTangoIcon(String resource, int size) {
+	public static ImageIcon getTangoIcon(String resource, int size) {
 		return getIcon(String.format(TANGO_ICON_RESOURCE_FORMAT, size, size, resource));
 	}
 
 	/**
-	 * Returns an Image for the given resource or null
+	 * Returns a Multi Resolution ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Size
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getTangoMultiResIcon(String resource, int size) {
+		int resourceCount = TANGO_ICON_SIZES.length;
+		if (IntStream.of(TANGO_ICON_SIZES).noneMatch(x -> x == size)) {
+			resourceCount++;
+		}
+
+		String[] resources = new String[resourceCount];
+		resources[0] = String.format(TANGO_ICON_RESOURCE_FORMAT, size, size, resource);
+		String[] tempArr = IntStream.of(TANGO_ICON_SIZES).filter(x -> x != size).mapToObj(x -> String.format(TANGO_ICON_RESOURCE_FORMAT, x, x, resource)).toArray(String[]::new);
+		System.arraycopy(tempArr, 0, resources, 1, tempArr.length);
+
+		return getMultiResIcon(resources);
+	}
+
+	/**
+	 * Returns an Image for the given resource
 	 * 
 	 * @param resource Resource
 	 * @param size Size
 	 * @return Image
 	 */
-	public static synchronized Image getTangoImage(String resource, int size) {
+	public static Image getTangoImage(String resource, int size) {
 		return getImage(String.format(TANGO_ICON_RESOURCE_FORMAT, size, size, resource));
 	}
 
 	/**
-	 * Returns an ImageIcon for the given resource or null
+	 * Returns an ImageIcon for the given resource
 	 * 
 	 * @param resource Resource
 	 * @return ImageIcon
 	 */
-	public static synchronized ImageIcon getApplIcon(String resource) {
+	public static ImageIcon getApplIcon(String resource) {
 		return getIcon(String.format(APPL_ICON_RESOURCE_FORMAT, resource));
 	}
 
 	/**
-	 * Returns an ImageIcon for the given resource or null
+	 * Returns an ImageIcon for the given resource
 	 * 
 	 * @param resource Resource
 	 * @param size Size
 	 * @return ImageIcon
 	 */
-	public static synchronized ImageIcon getApplIcon(String resource, int size) {
+	public static ImageIcon getApplIcon(String resource, int size) {
 		return getIcon(String.format(APPL_ICON_SIZE_RESOURCE_FORMAT, size, size, resource));
 	}
 
 	/**
-	 * Returns an Image for the given resource or null
+	 * Returns an Image for the given resource
 	 * 
 	 * @param resource Resource
 	 * @return Image
 	 */
-	public static synchronized Image getApplImage(String resource) {
+	public static Image getApplImage(String resource) {
 		return getImage(String.format(APPL_ICON_RESOURCE_FORMAT, resource));
 	}
 
 	/**
-	 * Returns an Image for the given resource or null
+	 * Returns an Image for the given resource
 	 * 
 	 * @param resource Resource
 	 * @param size Size
 	 * @return Image
 	 */
-	public static synchronized Image getApplImage(String resource, int size) {
+	public static Image getApplImage(String resource, int size) {
 		return getImage(String.format(APPL_ICON_SIZE_RESOURCE_FORMAT, size, size, resource));
 	}
 
 	/**
-	 * Returns an ImageIcon for the given resource or null
+	 * Returns an ImageIcon for the given resource
 	 * 
 	 * @param resource Resource
 	 * @return ImageIcon
 	 */
-	public static synchronized ImageIcon getIcon(String resource) {
+	public static ImageIcon getIcon(String resource) {
 		return new ImageIcon(getImage(resource));
+	}
+
+	/**
+	 * Returns a Mutli Resolution ImageIcon for the given resources
+	 * 
+	 * @param resources Resources
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getMultiResIcon(String... resources) {
+		Image[] images = new Image[resources.length];
+
+		/*
+		 * Use media tracker to wait until images are fully loaded, so that ImageIcon actually gets the image size and displays the image.
+		 */
+		synchronized (MEDIA_TRACKER) {
+			for (int i = 0; i < resources.length; i++) {
+				int id = getNextMediaTrackerID();
+				images[i] = getImage(resources[i]);
+				MEDIA_TRACKER.addImage(images[i], id);
+				try {
+					MEDIA_TRACKER.waitForID(id, 0);
+				} catch (InterruptedException e) {
+					logger.error("Wait for media tracker was interrupted", e);
+				}
+				MEDIA_TRACKER.removeImage(images[i], id);
+			}
+		}
+
+		BaseMultiResolutionImage multiResolutionImage = new BaseMultiResolutionImage(images);
+		return new ImageIcon(multiResolutionImage);
 	}
 
 	/**
