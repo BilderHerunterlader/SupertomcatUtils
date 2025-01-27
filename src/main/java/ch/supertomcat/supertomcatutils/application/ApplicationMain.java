@@ -1,14 +1,10 @@
 package ch.supertomcat.supertomcatutils.application;
 
-import java.awt.Font;
-import java.awt.GraphicsDevice;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -28,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jna.Platform;
 
-import ch.supertomcat.supertomcatutils.gui.PositionUtil;
 import ch.supertomcat.supertomcatutils.io.FileUtil;
 
 /**
@@ -539,47 +534,6 @@ public abstract class ApplicationMain {
 	 */
 	protected boolean setSystemLookAndFeel() {
 		return changeLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-	}
-
-	/**
-	 * Apply Window scaling if needed
-	 * 
-	 * @param bounds Bounds
-	 */
-	protected void applyWindowScalingIfNeeded(Rectangle bounds) {
-		if (!UIManager.getLookAndFeel().isNativeLookAndFeel()) {
-			return;
-		}
-
-		GraphicsDevice device = PositionUtil.getScreenDeviceOfComponent(bounds);
-		double windowScaling = PositionUtil.getWindowScaling(device);
-		applyWindowScaling(windowScaling);
-	}
-
-	/**
-	 * Apply Window scaling
-	 * 
-	 * @param windowScaling Window scaling
-	 */
-	protected void applyWindowScaling(double windowScaling) {
-		if (!PositionUtil.checkWindowScalingNeeded(windowScaling)) {
-			return;
-		}
-
-		for (Object key : UIManager.getLookAndFeelDefaults().keySet()) {
-			if (key == null || !String.valueOf(key).toLowerCase().contains("font")) {
-				continue;
-			}
-
-			Font font = UIManager.getDefaults().getFont(key);
-			if (font == null) {
-				continue;
-			}
-
-			float windowScalingFloat = BigDecimal.valueOf(windowScaling).floatValue();
-			Font scaledFont = font.deriveFont(font.getSize2D() * windowScalingFloat);
-			UIManager.put(key, scaledFont);
-		}
 	}
 
 	/**
