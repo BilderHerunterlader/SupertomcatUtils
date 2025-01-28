@@ -7,7 +7,9 @@ import java.awt.Toolkit;
 import java.awt.image.BaseMultiResolutionImage;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
@@ -25,6 +27,8 @@ public final class Icons {
 
 	private static final int[] TANGO_ICON_SIZES = { 16, 22, 32 };
 
+	private static final int[] APPL_ICON_SIZES = { 16, 22, 32, 64, 128, 256 };
+
 	private static final Component MEDIA_TRACKER_COMPONENT = new Component() {
 
 		/**
@@ -39,9 +43,14 @@ public final class Icons {
 	private static int mediaTrackerID = 0;
 
 	/**
-	 * Resources
+	 * Image Cache
 	 */
-	private static Map<String, Image> iconCache = new HashMap<>();
+	private static Map<String, Image> imageCache = new HashMap<>();
+
+	/**
+	 * Set for not found images
+	 */
+	private static Set<String> notFoundImages = new HashSet<>();
 
 	/**
 	 * Logger for this class
@@ -90,10 +99,41 @@ public final class Icons {
 	 * Returns a Multi Resolution ImageIcon for the given resource
 	 * 
 	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getTangoMultiResIcon(String resource) {
+		return new ImageIcon(getTangoMultiResImage(resource));
+	}
+
+	/**
+	 * Returns a Multi Resolution ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
 	 * @param size Size
 	 * @return ImageIcon
 	 */
 	public static ImageIcon getTangoMultiResIcon(String resource, int size) {
+		return new ImageIcon(getTangoMultiResImage(resource, size));
+	}
+
+	/**
+	 * Returns a Multi Resolution Image for the given resource
+	 * 
+	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static Image getTangoMultiResImage(String resource) {
+		return getTangoMultiResImage(resource, 16);
+	}
+
+	/**
+	 * Returns a Multi Resolution Image for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Size
+	 * @return ImageIcon
+	 */
+	public static Image getTangoMultiResImage(String resource, int size) {
 		int resourceCount = TANGO_ICON_SIZES.length;
 		if (IntStream.of(TANGO_ICON_SIZES).noneMatch(x -> x == size)) {
 			resourceCount++;
@@ -104,7 +144,7 @@ public final class Icons {
 		String[] tempArr = IntStream.of(TANGO_ICON_SIZES).filter(x -> x != size).mapToObj(x -> String.format(TANGO_ICON_RESOURCE_FORMAT, x, x, resource)).toArray(String[]::new);
 		System.arraycopy(tempArr, 0, resources, 1, tempArr.length);
 
-		return getMultiResIcon(resources);
+		return getMultiResImage(resources);
 	}
 
 	/**
@@ -137,6 +177,58 @@ public final class Icons {
 	 */
 	public static ImageIcon getApplIcon(String resource, int size) {
 		return getIcon(String.format(APPL_ICON_SIZE_RESOURCE_FORMAT, size, size, resource));
+	}
+
+	/**
+	 * Returns a Multi Resolution ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getApplMultiResIcon(String resource) {
+		return new ImageIcon(getApplMultiResImage(resource));
+	}
+
+	/**
+	 * Returns a Multi Resolution ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Size
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getApplMultiResIcon(String resource, int size) {
+		return new ImageIcon(getApplMultiResImage(resource, size));
+	}
+
+	/**
+	 * Returns a Multi Resolution Image for the given resource
+	 * 
+	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static Image getApplMultiResImage(String resource) {
+		return getApplMultiResImage(resource, 16);
+	}
+
+	/**
+	 * Returns a Multi Resolution Image for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Size
+	 * @return ImageIcon
+	 */
+	public static Image getApplMultiResImage(String resource, int size) {
+		int resourceCount = APPL_ICON_SIZES.length;
+		if (IntStream.of(APPL_ICON_SIZES).noneMatch(x -> x == size)) {
+			resourceCount++;
+		}
+
+		String[] resources = new String[resourceCount];
+		resources[0] = String.format(APPL_ICON_SIZE_RESOURCE_FORMAT, size, size, resource);
+		String[] tempArr = IntStream.of(APPL_ICON_SIZES).filter(x -> x != size).mapToObj(x -> String.format(APPL_ICON_SIZE_RESOURCE_FORMAT, x, x, resource)).toArray(String[]::new);
+		System.arraycopy(tempArr, 0, resources, 1, tempArr.length);
+
+		return getMultiResImage(resources);
 	}
 
 	/**
@@ -177,15 +269,32 @@ public final class Icons {
 	 * @return ImageIcon
 	 */
 	public static ImageIcon getMultiResIcon(String... resources) {
+		return new ImageIcon(getMultiResImage(resources));
+	}
+
+	/**
+	 * Returns a Mutli Resolution Image for the given resources
+	 * 
+	 * @param resources Resources
+	 * @return ImageIcon
+	 */
+	public static Image getMultiResImage(String... resources) {
 		Image[] images = new Image[resources.length];
 
 		/*
 		 * Use media tracker to wait until images are fully loaded, so that ImageIcon actually gets the image size and displays the image.
 		 */
+		int loadedImages = 0;
 		synchronized (MEDIA_TRACKER) {
 			for (int i = 0; i < resources.length; i++) {
+				boolean first = i == 0;
 				int id = getNextMediaTrackerID();
-				images[i] = getImage(resources[i]);
+				Image loadedImage = getImage(resources[i], null, first);
+
+				if (loadedImage == null) {
+					continue;
+				}
+
 				MEDIA_TRACKER.addImage(images[i], id);
 				try {
 					MEDIA_TRACKER.waitForID(id, 0);
@@ -193,44 +302,96 @@ public final class Icons {
 					logger.error("Wait for media tracker was interrupted", e);
 				}
 				MEDIA_TRACKER.removeImage(images[i], id);
+				images[loadedImages] = loadedImage;
+				loadedImages++;
 			}
 		}
 
-		BaseMultiResolutionImage multiResolutionImage = new BaseMultiResolutionImage(images);
-		return new ImageIcon(multiResolutionImage);
+		if (loadedImages == 0) {
+			return dummy16;
+		}
+
+		if (loadedImages != images.length) {
+			Image[] tempArr = new Image[loadedImages];
+			System.arraycopy(images, 0, tempArr, 0, loadedImages);
+			images = tempArr;
+		}
+
+		return new BaseMultiResolutionImage(images);
 	}
 
 	/**
-	 * Returns an Image for the given resource or null
+	 * Returns an Image for the given resource
 	 * 
 	 * @param resource Resource
-	 * @return Image
+	 * @return Image or dummy image if not found
 	 */
-	public static synchronized Image getImage(String resource) {
-		Image image = iconCache.get(resource);
-		if (image == null) {
-			image = loadImage(resource);
-			if (image != null) {
-				iconCache.put(resource, image);
-			} else {
-				logger.error("Could not load image: {}", resource);
-			}
-		}
-		return image;
+	public static Image getImage(String resource) {
+		return getImage(resource, dummy16, true);
 	}
 
-	private static Image loadImage(String resource) {
+	/**
+	 * Returns an Image for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param defaultValue
+	 * @return Image or defualt value if not found
+	 */
+	public static Image getImage(String resource, Image defaultValue) {
+		return getImage(resource, defaultValue, true);
+	}
+
+	/**
+	 * Returns an Image for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param defaultValue
+	 * @param logError True if an error should be logged, if the image was not found, false otherwise
+	 * @return Image or defualt value if not found
+	 */
+	public static synchronized Image getImage(String resource, Image defaultValue, boolean logError) {
+		Image image = imageCache.get(resource);
+		if (image != null) {
+			return image;
+		}
+
+		if (notFoundImages.contains(resource)) {
+			return defaultValue;
+		}
+
+		image = loadImage(resource, logError);
+		if (image != null) {
+			imageCache.put(resource, image);
+			return image;
+		}
+
+		notFoundImages.add(resource);
+
+		return defaultValue;
+	}
+
+	/**
+	 * Load image
+	 * 
+	 * @param resource Resource
+	 * @param logError True if an error should be logged, if the image could not be found, false otherwise
+	 * @return Image or null if it could not be loaded
+	 */
+	private static Image loadImage(String resource, boolean logError) {
 		try {
 			URL resourceURL = Icons.class.getResource(resource);
 			if (resourceURL != null) {
 				return Toolkit.getDefaultToolkit().getImage(resourceURL);
 			} else {
-				logger.error("Could not load image: {}", resource);
+				if (logError) {
+					logger.error("Could not load image: {}", resource);
+				}
+				return null;
 			}
 		} catch (Exception e) {
 			logger.error("Could not load image: {}", resource, e);
+			return null;
 		}
-		return dummy16;
 	}
 
 	/**
