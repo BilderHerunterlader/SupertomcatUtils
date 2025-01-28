@@ -17,6 +17,8 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.image.ImageSizeWaiter;
+
 /**
  * Class which contains a list of icon resources
  */
@@ -302,6 +304,12 @@ public final class Icons {
 					logger.error("Wait for media tracker was interrupted", e);
 				}
 				MEDIA_TRACKER.removeImage(images[i], id);
+
+				ImageSizeWaiter imageSizeWaiter = new ImageSizeWaiter(loadedImage);
+				if (!imageSizeWaiter.waitForSize(500)) {
+					logger.warn("Image size not yet available: {}", resources[i]);
+				}
+
 				images[loadedImages] = loadedImage;
 				loadedImages++;
 			}
