@@ -16,11 +16,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.ini4j.Profile.Section;
-import org.ini4j.Wini;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.SubnodeConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -310,24 +310,27 @@ public final class FirefoxCookies {
 		}
 
 		File profilesIniFile = new File(firefoxPath, "profiles.ini");
-		try {
+		try (FileInputStream inputStream = new FileInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
 			int defaultProfileIndex = -1;
 			List<String> paths = new ArrayList<>();
 
-			Wini ini = new Wini(profilesIniFile);
-			for (Map.Entry<String, Section> entry : ini.entrySet()) {
-				logger.debug("Found section: {}", entry.getKey());
+			INIConfiguration ini = new INIConfiguration();
+			ini.read(reader);
 
-				if (!entry.getKey().startsWith("Profile")) {
+			for (String sectionName : ini.getSections()) {
+				logger.debug("Found section: {}", sectionName);
+
+				if (!sectionName.startsWith("Profile")) {
 					continue;
 				}
 
-				logger.debug("Section is a profile: {}", entry.getKey());
-				Section section = entry.getValue();
+				logger.debug("Section is a profile: {}", sectionName);
+				SubnodeConfiguration section = ini.getSection(sectionName);
 
-				String relative = section.get("IsRelative", String.class, null);
-				String profilePath = section.get("Path", String.class, null);
-				String profileDefault = section.get("Default", String.class, null);
+				String relative = section.getString("IsRelative", null);
+				String profilePath = section.getString("Path", null);
+				String profileDefault = section.getString("Default", null);
+
 				if (relative == null || profilePath == null) {
 					continue;
 				}
@@ -353,7 +356,7 @@ public final class FirefoxCookies {
 					return "";
 				}
 			}
-		} catch (IOException e) {
+		} catch (IOException | ConfigurationException e) {
 			logger.error("Could not read profiles.ini: {}", profilesIniFile.getAbsolutePath(), e);
 			return "";
 		}

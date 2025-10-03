@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.bilderherunterlader</groupId>
 		<artifactId>supertomcatroot</artifactId>
-		<version>1.0.4</version>
+		<version>1.0.6</version>
 	</parent>
 	
 	<artifactId>supertomcatutils</artifactId>
@@ -39,8 +39,8 @@
 			<artifactId>jna-platform</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.ini4j</groupId>
-			<artifactId>ini4j</artifactId>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-configuration2</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.freedesktop.tango</groupId>
@@ -91,8 +91,8 @@
 				<artifactId>maven-gpg-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.sonatype.plugins</groupId>
-				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
@@ -102,14 +102,4 @@
 		<developerConnection>scm:git:https://github.com/BilderHerunterlader/SupertomcatUtils.git</developerConnection>
 		<tag>supertomcatutils-1.0.32</tag>
 	</scm>
-	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
 </project>
