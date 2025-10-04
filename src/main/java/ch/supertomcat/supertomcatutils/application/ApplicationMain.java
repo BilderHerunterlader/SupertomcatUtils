@@ -564,7 +564,7 @@ public abstract class ApplicationMain {
 				shutdownHookExit();
 			}
 		});
-		shutdownThread.setName("Shutdown-Thread-" + shutdownThread.getId());
+		shutdownThread.setName("Shutdown-Thread-" + shutdownThread.threadId());
 		addShutdownHook(shutdownThread);
 	}
 

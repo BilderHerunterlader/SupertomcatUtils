@@ -133,8 +133,8 @@ public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCe
 	 * @param column Index of the Column
 	 */
 	public void prepareValue(JCheckBox cb, JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		if (value instanceof Boolean) {
-			cb.setSelected((Boolean)value);
+		if (value instanceof Boolean booleanValue) {
+			cb.setSelected(booleanValue);
 		}
 	}
 }

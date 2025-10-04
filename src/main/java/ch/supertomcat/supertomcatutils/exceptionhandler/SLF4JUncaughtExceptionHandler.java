@@ -14,6 +14,6 @@ public class SLF4JUncaughtExceptionHandler implements Thread.UncaughtExceptionHa
 
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
-		logger.error("Uncaught Exception in Thread with ID '{}': {}", t.getId(), t.getName(), e);
+		logger.error("Uncaught Exception in Thread with ID '{}': {}", t.threadId(), t.getName(), e);
 	}
 }

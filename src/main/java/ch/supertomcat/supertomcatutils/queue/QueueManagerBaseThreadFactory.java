@@ -29,7 +29,7 @@ public class QueueManagerBaseThreadFactory implements ThreadFactory {
 	@Override
 	public Thread newThread(Runnable r) {
 		Thread t = baseThreadFactory.newThread(r);
-		t.setName(threadNamePrefix + t.getId());
+		t.setName(threadNamePrefix + t.threadId());
 		return t;
 	}
 }

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.bilderherunterlader</groupId>
 		<artifactId>supertomcatroot</artifactId>
-		<version>1.0.6</version>
+		<version>1.1.0</version>
 	</parent>
 	
 	<artifactId>supertomcatutils</artifactId>
@@ -43,6 +43,11 @@
 			<artifactId>commons-configuration2</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>6.2.11</version>
+		</dependency>
+		<dependency>
 			<groupId>org.freedesktop.tango</groupId>
 			<artifactId>tango-icon-theme</artifactId>
 		</dependency>
@@ -69,22 +74,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

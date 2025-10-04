@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLConnection;
 
 import javax.imageio.ImageIO;
@@ -17,6 +16,7 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.http.HTTPUtil;
 import ch.supertomcat.supertomcatutils.io.CopyUtil;
 
 /**
@@ -45,7 +45,7 @@ public final class ImageUtil {
 	 * @throws IOException
 	 */
 	public static BufferedImage downloadImage(String url, int connectTimeout, int readTimeout) throws IOException {
-		URLConnection con = new URL(url).openConnection();
+		URLConnection con = HTTPUtil.parseURL(url).openConnection();
 		con.setConnectTimeout(connectTimeout);
 		con.setReadTimeout(readTimeout);
 		try (InputStream in = con.getInputStream()) {
@@ -94,7 +94,7 @@ public final class ImageUtil {
 	 * @throws IOException
 	 */
 	public static byte[] downloadImageRaw(String url, int connectTimeout, int readTimeout) throws IOException {
-		URLConnection con = new URL(url).openConnection();
+		URLConnection con = HTTPUtil.parseURL(url).openConnection();
 		con.setConnectTimeout(connectTimeout);
 		con.setReadTimeout(readTimeout);
 		try (InputStream in = con.getInputStream()) {

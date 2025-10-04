@@ -147,11 +147,11 @@ public abstract class QueueManagerBase<T, R> {
 		}
 
 		schedulerThread = new Thread(new QueueSchedulerThread());
-		schedulerThread.setName("QueueSchedulerThread-" + schedulerThread.getId());
+		schedulerThread.setName("QueueSchedulerThread-" + schedulerThread.threadId());
 		schedulerThread.start();
 
 		queueCompletionThread = new Thread(new QueueCompletionThread());
-		queueCompletionThread.setName("QueueCompletionThread-" + queueCompletionThread.getId());
+		queueCompletionThread.setName("QueueCompletionThread-" + queueCompletionThread.threadId());
 		queueCompletionThread.start();
 	}
 

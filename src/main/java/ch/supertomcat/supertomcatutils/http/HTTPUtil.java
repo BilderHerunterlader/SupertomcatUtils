@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * This class provides methods for working with URL's
@@ -67,6 +69,28 @@ public final class HTTPUtil {
 	}
 
 	/**
+	 * Parse URI
+	 * 
+	 * @param uri URI
+	 * @return URI
+	 */
+	public static URI parseURI(String uri) {
+		UriComponents uriComponents = UriComponentsBuilder.fromUriString(uri).build();
+		return uriComponents.toUri();
+	}
+
+	/**
+	 * Parse URL
+	 * 
+	 * @param url URL
+	 * @return URL
+	 * @throws MalformedURLException
+	 */
+	public static URL parseURL(String url) throws MalformedURLException {
+		return parseURI(url).toURL();
+	}
+
+	/**
 	 * Encodes the given URL. If the method fails to encode the URL the given URL is returned.
 	 * 
 	 * If the checkForPercentCharacter is true and a percent character is found in the URL, then the URL will not be encoded and just returned.
@@ -82,7 +106,7 @@ public final class HTTPUtil {
 			return encodedURL;
 		}
 		try {
-			URL parsedURL = new URL(url);
+			URL parsedURL = parseURL(url);
 			// Use this URI constructor with mutliple parts of the URL, because the normal constructor or toURI will not do any encoding
 			URI uri = new URI(parsedURL.getProtocol(), parsedURL.getUserInfo(), parsedURL.getHost(), parsedURL.getPort(), parsedURL.getPath(), parsedURL.getQuery(), parsedURL.getRef());
 			encodedURL = uri.toASCIIString();
@@ -112,73 +136,83 @@ public final class HTTPUtil {
 	 * @return Decoded URL
 	 */
 	public static String decodeURL(String url) {
-		String decodedURL = url;
 		try {
-			URL parsedURL = new URL(url);
-			// Use toURI, so that the URL is not encoded again
-			URI uri = parsedURL.toURI();
-
-			/*
-			 * Unfortunately there seems to be no way to get the full decoded URL from the URI, so we have to get the decoded parts and put them together to a
-			 * full URL here.
-			 */
-
-			StringBuilder sb = new StringBuilder();
-
-			String scheme = uri.getScheme();
-			if (scheme != null) {
-				sb.append(scheme);
-				sb.append(':');
-			}
-			if (uri.isOpaque()) {
-				sb.append(uri.getSchemeSpecificPart());
-			} else {
-				String host = uri.getHost();
-				String authority = uri.getAuthority();
-				if (host != null) {
-					sb.append("//");
-					String userInfo = uri.getUserInfo();
-					if (userInfo != null) {
-						sb.append(userInfo);
-						sb.append('@');
-					}
-
-					boolean bracketsNeeded = (host.indexOf(':') >= 0) && !host.startsWith("[") && !host.endsWith("]");
-					if (bracketsNeeded) {
-						sb.append('[');
-					}
-					sb.append(host);
-					if (bracketsNeeded) {
-						sb.append(']');
-					}
-					int port = uri.getPort();
-					if (port != -1) {
-						sb.append(':');
-						sb.append(port);
-					}
-				} else if (authority != null) {
-					sb.append("//");
-					sb.append(authority);
-				}
-				String path = uri.getPath();
-				if (path != null) {
-					sb.append(path);
-				}
-				String query = uri.getQuery();
-				if (query != null) {
-					sb.append('?');
-					sb.append(query);
-				}
-			}
-			String fragment = uri.getFragment();
-			if (fragment != null) {
-				sb.append('#');
-				sb.append(fragment);
-			}
-			decodedURL = sb.toString();
+			return decodeURL(parseURL(url));
 		} catch (MalformedURLException | URISyntaxException e) {
 			logger.error("Could not decode URL, because it is malformed: {}", url, e);
+			return url;
 		}
+	}
+
+	/**
+	 * Decodes the given URL. If the method fails to decode the URL the given URL is returned.
+	 * 
+	 * @param url Encoded URL
+	 * @return Decoded URL
+	 * @throws URISyntaxException
+	 */
+	public static String decodeURL(URL url) throws URISyntaxException {
+		// Use toURI, so that the URL is not encoded again
+		URI uri = url.toURI();
+
+		/*
+		 * Unfortunately there seems to be no way to get the full decoded URL from the URI, so we have to get the decoded parts and put them together to a
+		 * full URL here.
+		 */
+
+		StringBuilder sb = new StringBuilder();
+
+		String scheme = uri.getScheme();
+		if (scheme != null) {
+			sb.append(scheme);
+			sb.append(':');
+		}
+		if (uri.isOpaque()) {
+			sb.append(uri.getSchemeSpecificPart());
+		} else {
+			String host = uri.getHost();
+			String authority = uri.getAuthority();
+			if (host != null) {
+				sb.append("//");
+				String userInfo = uri.getUserInfo();
+				if (userInfo != null) {
+					sb.append(userInfo);
+					sb.append('@');
+				}
+
+				boolean bracketsNeeded = (host.indexOf(':') >= 0) && !host.startsWith("[") && !host.endsWith("]");
+				if (bracketsNeeded) {
+					sb.append('[');
+				}
+				sb.append(host);
+				if (bracketsNeeded) {
+					sb.append(']');
+				}
+				int port = uri.getPort();
+				if (port != -1) {
+					sb.append(':');
+					sb.append(port);
+				}
+			} else if (authority != null) {
+				sb.append("//");
+				sb.append(authority);
+			}
+			String path = uri.getPath();
+			if (path != null) {
+				sb.append(path);
+			}
+			String query = uri.getQuery();
+			if (query != null) {
+				sb.append('?');
+				sb.append(query);
+			}
+		}
+		String fragment = uri.getFragment();
+		if (fragment != null) {
+			sb.append('#');
+			sb.append(fragment);
+		}
+		String decodedURL = sb.toString();
 
 		logger.debug("URL: {}, DecodedURL: {}", url, decodedURL);
 		return decodedURL;
@@ -194,7 +228,7 @@ public final class HTTPUtil {
 	 */
 	public static String getDomainFromURL(String url) {
 		try {
-			URL parsedURL = new URL(url);
+			URL parsedURL = parseURL(url);
 			return parsedURL.getHost();
 		} catch (MalformedURLException e) {
 			logger.debug("Could not get domain from URL: {}", url, e);
@@ -247,7 +281,7 @@ public final class HTTPUtil {
 	 */
 	public static String getFilenameFromURL(String url, String defaultValue) {
 		try {
-			URL parsedURL = new URL(url);
+			URL parsedURL = parseURL(url);
 			String path = parsedURL.getPath();
 
 			int pos = path.lastIndexOf("/");

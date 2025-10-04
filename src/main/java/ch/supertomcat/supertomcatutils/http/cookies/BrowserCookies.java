@@ -11,6 +11,7 @@ import java.util.StringJoiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.http.HTTPUtil;
 import ch.supertomcat.supertomcatutils.http.cookies.firefox.FirefoxCookieStrategy;
 import ch.supertomcat.supertomcatutils.http.cookies.ie.IECookieStrategy;
 import ch.supertomcat.supertomcatutils.http.cookies.opera.newformat.OperaNewCookieStrategy;
@@ -199,7 +200,7 @@ public final class BrowserCookies {
 	public static List<BrowserCookie> getBrowserCookies(String url, CookieStrategy cookieStrategy, Map<String, String> cookieStrategyOptions) {
 		URL completeURL;
 		try {
-			completeURL = new URL(url);
+			completeURL = HTTPUtil.parseURL(url);
 		} catch (MalformedURLException mue) {
 			return new ArrayList<>();
 		}
@@ -210,7 +211,7 @@ public final class BrowserCookies {
 			domain = domain.substring(1, domain.length() - 1);
 		}
 		String path = completeURL.getPath();
-		if (path.length() == 0) {
+		if (path.isEmpty()) {
 			path = "/";
 		}
 
