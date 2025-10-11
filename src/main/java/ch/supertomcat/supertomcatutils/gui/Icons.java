@@ -23,6 +23,7 @@ import ch.supertomcat.supertomcatutils.image.ImageSizeWaiter;
  * Class which contains a list of icon resources
  */
 public final class Icons {
+	private static final String DUMMY_ICON_FILENAME = "dummy.png";
 	private static final String APPL_ICON_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/%s";
 	private static final String APPL_ICON_SIZE_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/%dx%d/%s";
 	private static final String TANGO_ICON_RESOURCE_FORMAT = "/org/freedesktop/tango/%dx%d/%s";
@@ -62,17 +63,17 @@ public final class Icons {
 	/**
 	 * Dummy Image 16 Pixel
 	 */
-	private static Image dummy16 = getApplImage("dummy.png", 16);
+	private static Image dummy16 = getApplImage(DUMMY_ICON_FILENAME, 16);
 
 	/**
 	 * Dummy Image 22 Pixel
 	 */
-	private static Image dummy22 = getApplImage("dummy.png", 22);
+	private static Image dummy22 = getApplImage(DUMMY_ICON_FILENAME, 22);
 
 	/**
 	 * Dummy Image 32 Pixel
 	 */
-	private static Image dummy32 = getApplImage("dummy.png", 32);
+	private static Image dummy32 = getApplImage(DUMMY_ICON_FILENAME, 32);
 
 	private Icons() {
 	}

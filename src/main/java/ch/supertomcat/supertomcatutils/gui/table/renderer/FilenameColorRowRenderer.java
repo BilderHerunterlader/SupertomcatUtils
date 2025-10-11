@@ -20,10 +20,10 @@ public class FilenameColorRowRenderer extends DefaultStringColorRowRenderer {
 
 	@Override
 	public void prepareValueText(JLabel label, JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		if (value instanceof Path) {
-			super.prepareValueText(label, table, ((Path)value).getFileName(), isSelected, hasFocus, row, column);
-		} else if (value instanceof File) {
-			super.prepareValueText(label, table, ((File)value).getName(), isSelected, hasFocus, row, column);
+		if (value instanceof Path path) {
+			super.prepareValueText(label, table, path.getFileName(), isSelected, hasFocus, row, column);
+		} else if (value instanceof File path) {
+			super.prepareValueText(label, table, path.getName(), isSelected, hasFocus, row, column);
 		} else {
 			super.prepareValueText(label, table, value, isSelected, hasFocus, row, column);
 		}

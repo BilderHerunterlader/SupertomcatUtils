@@ -19,6 +19,7 @@ package ch.supertomcat.supertomcatutils.image;
 import java.io.DataInput;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -385,7 +386,7 @@ public class ImageInfo {
 				{
 					int extensionType = read();
 					if (collectComments && extensionType == 0xfe) {
-						StringBuffer sb = new StringBuffer();
+						StringBuilder sb = new StringBuilder();
 						int n;
 						do {
 							n = read();
@@ -506,7 +507,7 @@ public class ImageInfo {
 				if (read(chars, 0, size) != size) {
 					return false;
 				}
-				String comment = new String(chars, "iso-8859-1");
+				String comment = new String(chars, StandardCharsets.ISO_8859_1);
 				comment = comment.trim();
 				// System.out.println(comment);
 				addComment(comment);
@@ -594,7 +595,7 @@ public class ImageInfo {
 			if (s != null) {
 				s = s.trim();
 			}
-			if (s == null || s.length() < 1) {
+			if (s == null || s.isEmpty()) {
 				continue;
 			}
 			if (s.charAt(0) == '#') { // comment
@@ -939,10 +940,10 @@ public class ImageInfo {
 	}
 
 	private String readLine() throws IOException {
-		return readLine(new StringBuffer());
+		return readLine(new StringBuilder());
 	}
 
-	private String readLine(StringBuffer sb) throws IOException {
+	private String readLine(StringBuilder sb) throws IOException {
 		boolean finished;
 		do {
 			int value = read();

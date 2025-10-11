@@ -6,10 +6,11 @@ import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -19,6 +20,7 @@ import javax.swing.WindowConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.application.ApplicationMain;
 import ch.supertomcat.supertomcatutils.application.ApplicationProperties;
 
 /**
@@ -137,25 +139,25 @@ public class AboutDialog extends JDialog {
 	 * Fill Program Information
 	 */
 	protected void fillProgramInformation() {
-		pnlProgram.fillProgramInformation(ApplicationProperties.getProperty("ApplicationName"), ApplicationProperties.getProperty("ApplicationVersion"));
+		pnlProgram.fillProgramInformation(ApplicationProperties.getProperty(ApplicationMain.APPLICATION_NAME), ApplicationProperties.getProperty(ApplicationMain.APPLICATION_VERSION));
 	}
 
 	/**
 	 * Fill Application Paths Information
 	 */
 	protected void fillApplicationPathsInformation() {
-		pnlProgram.addProgramFolderInformation("Program Path:", ApplicationProperties.getProperty("ApplicationPath"));
-		pnlProgram.addProgramFolderInformation("Profile Path:", ApplicationProperties.getProperty("ProfilePath"));
-		File profilePath = new File(ApplicationProperties.getProperty("ProfilePath"));
-		pnlProgram.addProgramFolderInformation("Logs Path:", ApplicationProperties.getProperty("LogsPath"), profilePath);
+		pnlProgram.addProgramFolderInformation("Program Path:", ApplicationProperties.getProperty(ApplicationMain.APPLICATION_PATH));
+		pnlProgram.addProgramFolderInformation("Profile Path:", ApplicationProperties.getProperty(ApplicationMain.PROFILE_PATH));
+		Path profilePath = Paths.get(ApplicationProperties.getProperty(ApplicationMain.PROFILE_PATH));
+		pnlProgram.addProgramFolderInformation("Logs Path:", ApplicationProperties.getProperty(ApplicationMain.LOGS_PATH), profilePath);
 	}
 
 	/**
 	 * Fill Application License Information
 	 */
 	protected void fillApplicationLicenseInformation() {
-		String licenseName = ApplicationProperties.getProperty("LicenseName");
-		String licenseText = ApplicationProperties.getProperty("LicenseText");
+		String licenseName = ApplicationProperties.getProperty(ApplicationMain.LICENSE_NAME);
+		String licenseText = ApplicationProperties.getProperty(ApplicationMain.LICENSE_TEXT);
 		if (licenseName != null && licenseText != null) {
 			pnlLicense.fillLicenseInformation(licenseName, licenseText);
 		}

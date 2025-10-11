@@ -1,12 +1,12 @@
 package ch.supertomcat.supertomcatutils.settings;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
-import java.text.SimpleDateFormat;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -50,17 +50,17 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	/**
 	 * Settings Folder
 	 */
-	protected final File settingsFolder;
+	protected final Path settingsFolder;
 
 	/**
 	 * Settings File
 	 */
-	protected final File settingsFile;
+	protected final Path settingsFile;
 
 	/**
 	 * Settings Backup File
 	 */
-	protected final File settingsBackupFile;
+	protected final Path settingsBackupFile;
 
 	/**
 	 * Resource path to default settings file
@@ -106,9 +106,9 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 */
 	public SettingsManagerBase(String strSettingsFolder, final String strSettingsFilename, Class<?> objectFactoryClass, String defaultSettingsResourcePath,
 			String settingsSchemaResourcePath) throws JAXBException {
-		settingsFolder = new File(strSettingsFolder);
-		settingsFile = new File(settingsFolder, strSettingsFilename);
-		settingsBackupFile = new File(settingsFolder, strSettingsFilename + ".backup");
+		settingsFolder = Paths.get(strSettingsFolder);
+		settingsFile = settingsFolder.resolve(strSettingsFilename);
+		settingsBackupFile = settingsFolder.resolve(strSettingsFilename + ".backup");
 
 		jaxbContext = JAXBContext.newInstance(objectFactoryClass);
 		this.defaultSettingsResourcePath = defaultSettingsResourcePath;
@@ -116,25 +116,30 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 
 		createDirectoryIfNotExists(settingsFolder);
 
-		if (!settingsFile.exists()) {
-			logger.info("Settingsfile not found in folder '{}': {}", settingsFolder.getAbsolutePath(), settingsFile.getAbsolutePath());
+		if (!Files.exists(settingsFile)) {
+			logger.info("Settingsfile not found in folder '{}': {}", settingsFolder, settingsFile);
 			restoreSettingsFileFromBackupFile();
 		} else {
-			if (settingsFile.length() == 0) {
-				logger.error("Settingsfile is empty: {}", settingsFile.getAbsolutePath());
-				restoreSettingsFileFromBackupFile();
-			} else {
-				long now = System.currentTimeMillis();
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS");
-				String target = settingsFile.getAbsolutePath() + "-" + dateFormat.format(now);
-				CopyUtil.copy(settingsFile.getAbsolutePath(), target);
-
-				// Delete old backup-Files
-				ApplicationUtil.deleteOldBackupFiles(settingsFolder, strSettingsFilename, 3);
-
-				if (!settingsBackupFile.exists()) {
-					backupSettingsFile();
+			try {
+				if (Files.size(settingsFile) == 0) {
+					logger.error("Settingsfile is empty: {}", settingsFile);
+					restoreSettingsFileFromBackupFile();
+					return;
 				}
+			} catch (IOException e) {
+				logger.error("Could not check file size of settings file: {}", settingsFile, e);
+				// In this case just assume file is OK and continue code below
+			}
+
+			String formattedDateTime = LocalDateTime.now().format(ApplicationUtil.BACKUP_FILE_DATE_FORMAT);
+			String target = settingsFile.toAbsolutePath().toString() + "-" + formattedDateTime;
+			CopyUtil.copy(settingsFile.toAbsolutePath().toString(), target);
+
+			// Delete old backup-Files
+			ApplicationUtil.deleteOldBackupFiles(settingsFolder, strSettingsFilename, 3);
+
+			if (!Files.exists(settingsBackupFile)) {
+				backupSettingsFile();
 			}
 		}
 	}
@@ -145,11 +150,16 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 * @return True if settings file could be restored, false otherwise
 	 */
 	protected synchronized boolean restoreSettingsFileFromBackupFile() {
-		if (settingsBackupFile.exists() && settingsBackupFile.length() > 0) {
-			logger.info("Restoring Settingsfile with backup: {}", settingsBackupFile.getAbsolutePath());
-			CopyUtil.copy(settingsBackupFile.getAbsolutePath(), settingsFile.getAbsolutePath());
-			return true;
-		} else {
+		try {
+			if (Files.exists(settingsBackupFile) && Files.size(settingsBackupFile) > 0) {
+				logger.info("Restoring Settingsfile with backup: {}", settingsBackupFile);
+				CopyUtil.copy(settingsBackupFile, settingsFile);
+				return true;
+			} else {
+				return false;
+			}
+		} catch (IOException e) {
+			logger.error("Could not restore settings file from backup", e);
 			return false;
 		}
 	}
@@ -160,11 +170,16 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 * @return True if settings file could be backed up, false otherwise
 	 */
 	protected synchronized boolean backupSettingsFile() {
-		if (settingsFile.exists() && settingsFile.length() > 0) {
-			logger.debug("Backing up Settingsfile: {}", settingsBackupFile.getAbsolutePath());
-			CopyUtil.copy(settingsFile.getAbsolutePath(), settingsBackupFile.getAbsolutePath());
-			return true;
-		} else {
+		try {
+			if (Files.exists(settingsFile) && Files.size(settingsFile) > 0) {
+				logger.debug("Backing up Settingsfile {} to {}", settingsFile, settingsBackupFile);
+				CopyUtil.copy(settingsFile, settingsBackupFile);
+				return true;
+			} else {
+				return false;
+			}
+		} catch (IOException e) {
+			logger.error("Could not backup settings file", e);
 			return false;
 		}
 	}
@@ -175,17 +190,15 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 * @param directory Directory
 	 * @return True if successful, false otherwise
 	 */
-	protected boolean createDirectoryIfNotExists(File directory) {
-		if (!directory.exists()) {
-			try {
-				Files.createDirectories(directory.toPath());
-				return true;
-			} catch (IOException e) {
-				logger.error("Settings-Folder could not be created: {}", directory.getAbsolutePath(), e);
-				return false;
-			}
+	protected boolean createDirectoryIfNotExists(Path directory) {
+		try {
+			Files.createDirectories(directory);
+			return true;
+		} catch (IOException e) {
+			logger.error("Settings-Folder could not be created: {}", directory, e);
+			return false;
 		}
-		return true;
+
 	}
 
 	/**
@@ -197,7 +210,7 @@ public abstract class SettingsManagerBase<T, L extends SettingsListener> {
 	 * @throws JAXBException
 	 */
 	protected synchronized T loadUserSettingsFile() throws IOException, SAXException, JAXBException {
-		try (FileInputStream in = new FileInputStream(settingsFile)) {
+		try (InputStream in = Files.newInputStream(settingsFile)) {
 			return loadSettingsFile(in, false);
 		}
 	}

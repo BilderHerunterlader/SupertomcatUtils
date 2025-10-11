@@ -1,12 +1,16 @@
 package ch.supertomcat.supertomcatutils.database.sqlite;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -14,6 +18,7 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.application.ApplicationMain;
 import ch.supertomcat.supertomcatutils.application.ApplicationProperties;
 import ch.supertomcat.supertomcatutils.application.ApplicationUtil;
 import ch.supertomcat.supertomcatutils.gui.Localization;
@@ -72,7 +77,7 @@ public abstract class SQLiteDB<T> {
 		 */
 		boolean openDBFailed = false;
 		try (Connection con = getDatabaseConnection()) {
-			con.close();
+			// Nothing to do
 		} catch (ClassNotFoundException | SQLException e) {
 			openDBFailed = true;
 			String databaseAbsolutePath = new File(databaseFile).getAbsolutePath();
@@ -112,9 +117,11 @@ public abstract class SQLiteDB<T> {
 	}
 
 	private void createFolderIfNotExist() {
-		File folder = new File(ApplicationProperties.getProperty("DatabasePath"));
-		if (!folder.exists() && !folder.mkdirs()) {
-			logger.error("Could not create database folder: {}", folder.getAbsolutePath());
+		Path folder = Paths.get(ApplicationProperties.getProperty(ApplicationMain.DATABASE_PATH));
+		try {
+			Files.createDirectories(folder);
+		} catch (IOException e) {
+			logger.error("Could not create database folder: {}", folder);
 		}
 	}
 
@@ -122,19 +129,18 @@ public abstract class SQLiteDB<T> {
 	 * Creates a backup of the database
 	 */
 	private void backupDatabase() {
-		long now = System.currentTimeMillis();
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS");
-		String target = databaseFile + "-" + dateFormat.format(now);
-		File dbFile = new File(databaseFile);
-		String dbFilename = dbFile.getName();
+		String formattedDateTime = LocalDateTime.now().format(ApplicationUtil.BACKUP_FILE_DATE_FORMAT);
+		String target = databaseFile + "-" + formattedDateTime;
+		Path dbFile = Paths.get(databaseFile);
+		String dbFilename = dbFile.getFileName().toString();
 
 		// Backup
-		if (dbFile.exists()) {
+		if (Files.exists(dbFile)) {
 			CopyUtil.copy(databaseFile, target);
 		}
 
 		// Delete old backup-Files
-		ApplicationUtil.deleteOldBackupFiles(new File(ApplicationProperties.getProperty("DatabasePath")), dbFilename, 3);
+		ApplicationUtil.deleteOldBackupFiles(Paths.get(ApplicationProperties.getProperty(ApplicationMain.DATABASE_PATH)), dbFilename, 3);
 	}
 
 	/**

@@ -22,22 +22,24 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	 * Abstaende
 	 */
 	private Insets insets;
-	
+
 	/**
 	 * Kompenten welcher der LayoutManager zugewiesen wird
 	 */
 	private Component owner;
-	
+
 	/**
 	 * Konstruktor
+	 * 
 	 * @param owner Owner
 	 */
 	public GridBagLayoutContainer(Component owner) {
 		this(5, 5, 5, 5, owner);
 	}
-	
+
 	/**
 	 * Konstruktor
+	 * 
 	 * @param inseta Inset
 	 * @param insetb Inset
 	 * @param insetc Inset
@@ -47,17 +49,18 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	public GridBagLayoutContainer(int inseta, int insetb, int insetc, int insetd, Component owner) {
 		this.insets = new Insets(inseta, insetb, insetc, insetd);
 		this.owner = owner;
-		if (this.owner instanceof JFrame) {
-			((JFrame)this.owner).getContentPane().setLayout(this);
-		} else if (this.owner instanceof JDialog) {
-			((JDialog)this.owner).getContentPane().setLayout(this);
-		} else if (this.owner instanceof JComponent) {
-			((JComponent)this.owner).setLayout(this);
+		if (this.owner instanceof JFrame frame) {
+			frame.getContentPane().setLayout(this);
+		} else if (this.owner instanceof JDialog dialog) {
+			dialog.getContentPane().setLayout(this);
+		} else if (this.owner instanceof JComponent comp) {
+			comp.setLayout(this);
 		}
 	}
-	
+
 	/**
 	 * Constraints erstellen
+	 * 
 	 * @param x X-Position
 	 * @param y Y-Position
 	 * @return Constraints
@@ -65,9 +68,10 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	public GridBagConstraints getGBC(int x, int y) {
 		return getGBC(x, y, 1, 1);
 	}
-	
+
 	/**
 	 * Constraints erstellen
+	 * 
 	 * @param x X-Position
 	 * @param y Y-Position
 	 * @param w Width
@@ -77,9 +81,10 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	public GridBagConstraints getGBC(int x, int y, int w, int h) {
 		return getGBC(x, y, w, h, 0.0d, 0.0d);
 	}
-	
+
 	/**
 	 * Constraints erstellen
+	 * 
 	 * @param x X-Position
 	 * @param y Y-Position
 	 * @param w Width
@@ -91,9 +96,10 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	public GridBagConstraints getGBC(int x, int y, int w, int h, double weightx, double weighty) {
 		return getGBC(x, y, w, h, weightx, weighty, GridBagConstraints.BOTH);
 	}
-	
+
 	/**
 	 * Constraints erstellen
+	 * 
 	 * @param x X-Position
 	 * @param y Y-Position
 	 * @param w Width
@@ -115,17 +121,19 @@ public class GridBagLayoutContainer extends GridBagLayout {
 		gbc.weighty = weighty;
 		return gbc;
 	}
-	
+
 	/**
 	 * @param c Component
 	 * @param x X-Position
 	 * @param y Y-Position
 	 */
 	public void add(Component c, int x, int y) {
-		if (c == null) return;
+		if (c == null) {
+			return;
+		}
 		this.add(c, getGBC(x, y));
 	}
-	
+
 	/**
 	 * @param c Component
 	 * @param x X-Position
@@ -134,10 +142,12 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	 * @param h Height
 	 */
 	public void add(Component c, int x, int y, int w, int h) {
-		if (c == null) return;
+		if (c == null) {
+			return;
+		}
 		this.add(c, getGBC(x, y, w, h));
 	}
-	
+
 	/**
 	 * @param c Component
 	 * @param x X-Position
@@ -148,25 +158,33 @@ public class GridBagLayoutContainer extends GridBagLayout {
 	 * @param weighty Y-Weight
 	 */
 	public void add(Component c, int x, int y, int w, int h, double weightx, double weighty) {
-		if (c == null) return;
+		if (c == null) {
+			return;
+		}
 		this.add(c, getGBC(x, y, w, h, weightx, weighty));
 	}
-	
+
 	/**
 	 * @param c Component
 	 * @param gbc Constraints
 	 */
 	public void add(Component c, GridBagConstraints gbc) {
-		if (c == null) return;
-		if (gbc == null) return;
-		if (this.owner == null) return;
+		if (c == null) {
+			return;
+		}
+		if (gbc == null) {
+			return;
+		}
+		if (this.owner == null) {
+			return;
+		}
 		this.setConstraints(c, gbc);
-		if (this.owner instanceof JFrame) {
-			((JFrame)this.owner).getContentPane().add(c);
-		} else if (this.owner instanceof JDialog) {
-			((JDialog)this.owner).getContentPane().add(c);
-		} else if (this.owner instanceof JComponent) {
-			((JComponent)this.owner).add(c);
+		if (this.owner instanceof JFrame frame) {
+			frame.getContentPane().add(c);
+		} else if (this.owner instanceof JDialog dialog) {
+			dialog.getContentPane().add(c);
+		} else if (this.owner instanceof JComponent comp) {
+			comp.add(c);
 		}
 	}
 }

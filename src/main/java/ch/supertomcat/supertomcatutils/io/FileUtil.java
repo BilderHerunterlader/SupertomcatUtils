@@ -1,6 +1,8 @@
 package ch.supertomcat.supertomcatutils.io;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -236,11 +238,11 @@ public final class FileUtil {
 	 * @param file File
 	 * @return Path
 	 */
-	public static String getPathFromFile(File file) {
-		if (file.isDirectory()) {
-			return file.getAbsolutePath();
+	public static String getPathFromFile(Path file) {
+		if (Files.isDirectory(file)) {
+			return file.toAbsolutePath().toString();
 		} else {
-			return getDirectory(file.getAbsolutePath());
+			return getDirectory(file.toAbsolutePath().toString());
 		}
 	}
 
@@ -266,10 +268,10 @@ public final class FileUtil {
 	 * @return TRUE if it is the same folder or a subfolder
 	 */
 	public static boolean checkIsSameOrSubFolder(String path, String parentPath) {
-		File folderPath = new File(path);
-		File folderParentPath = new File(parentPath);
-		String absolutPath = folderPath.getAbsolutePath();
-		String absolutParentPath = folderParentPath.getAbsolutePath();
+		Path folderPath = Paths.get(path);
+		Path folderParentPath = Paths.get(parentPath);
+		String absolutPath = folderPath.toAbsolutePath().toString();
+		String absolutParentPath = folderParentPath.toAbsolutePath().toString();
 
 		if (PATTERN_WINDOWS_DRIVE_LETTER.matcher(absolutPath).matches()) {
 			absolutPath = absolutPath.toLowerCase();
@@ -505,15 +507,13 @@ public final class FileUtil {
 	 * @return Filtered String
 	 */
 	private static String filterPath(String str, boolean noPath, int mode) {
-		FilenameFilter filenameFilter;
-		if (mode == FILENAME_ASCII_ONLY) {
-			filenameFilter = filenameAsciiOnlyFilter;
-		} else if (mode == FILENAME_ASCII_UMLAUT) {
-			filenameFilter = filenameAsciiUmlautFilter;
-		} else {
-			filenameFilter = filenameAllFilter;
-		}
-		return filenameFilter.filter(str, noPath);
+		FilenameFilter filter = switch (mode) {
+			case FILENAME_ASCII_ONLY -> filenameAsciiOnlyFilter;
+			case FILENAME_ASCII_UMLAUT -> filenameAsciiUmlautFilter;
+			case FILENAME_ALL -> filenameAllFilter;
+			default -> filenameAllFilter;
+		};
+		return filter.filter(str, noPath);
 	}
 
 	/**

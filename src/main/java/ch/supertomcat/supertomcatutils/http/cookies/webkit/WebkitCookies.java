@@ -1,6 +1,5 @@
 package ch.supertomcat.supertomcatutils.http.cookies.webkit;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -66,7 +65,6 @@ public class WebkitCookies {
 	 */
 	public static List<BrowserCookie> getCookiesFromWebkit(String domain, String[] hosts, String[] paths, String cookieFile) {
 		logger.debug("Cookiefile: {}", cookieFile);
-		File file = new File(cookieFile);
 
 		/*
 		 * Opera seems to lock the cookies.sqlite all the time, so
@@ -83,9 +81,9 @@ public class WebkitCookies {
 		}
 
 		try {
-			return getCookiesFromWebkitSqlite(newCookieFile, domain, hosts, paths, dbLock);
+			return getCookiesFromWebkitSqlite(newCookieFile, domain, hosts, paths);
 		} catch (ClassNotFoundException | SQLException ex) {
-			logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
+			logger.error("Could not read cookies from: {}", cookieFile, ex);
 			return new ArrayList<>();
 		}
 	}
@@ -97,13 +95,11 @@ public class WebkitCookies {
 	 * @param domain Domain
 	 * @param hosts Hosts-Array
 	 * @param paths Paths-Array
-	 * @param dbLockObject Lock Object for reading database
 	 * @return Cookies
 	 * @throws ClassNotFoundException
 	 * @throws SQLException
 	 */
-	public static List<BrowserCookie> getCookiesFromWebkitSqlite(String cookieFile, final String domain, String[] hosts, String[] paths,
-			Object dbLockObject) throws ClassNotFoundException, SQLException {
+	public static List<BrowserCookie> getCookiesFromWebkitSqlite(String cookieFile, final String domain, String[] hosts, String[] paths) throws ClassNotFoundException, SQLException {
 		StringBuilder sbSQLQuery = new StringBuilder("SELECT * FROM cookies WHERE (host_key = '" + domain + "'");
 		for (int i = 0; i < hosts.length; i++) {
 			sbSQLQuery.append(" OR ");
@@ -130,8 +126,8 @@ public class WebkitCookies {
 
 		List<BrowserCookie> cookies = new ArrayList<>();
 
-		synchronized (dbLockObject) {
-			logger.debug("SQL-Query: " + sqlQuery);
+		synchronized (dbLock) {
+			logger.debug("SQL-Query: {}", sqlQuery);
 			try (Connection con = DriverManager.getConnection("jdbc:sqlite:" + cookieFile)) {
 				try (Statement stat = con.createStatement()) {
 					try (ResultSet rs = stat.executeQuery(sqlQuery)) {

@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,23 @@ public final class CopyUtil {
 	 */
 	public static boolean copy(String source, String target) {
 		try (FileInputStream fis = new FileInputStream(source); FileOutputStream fos = new FileOutputStream(target)) {
+			copy(fis, fos);
+			return true;
+		} catch (IOException e) {
+			logger.error("File '{}' could not be copied to '{}'", source, target, e);
+			return false;
+		}
+	}
+
+	/**
+	 * Copy a file
+	 * 
+	 * @param source Source
+	 * @param target Target
+	 * @return True if successful
+	 */
+	public static boolean copy(Path source, Path target) {
+		try (InputStream fis = Files.newInputStream(source); OutputStream fos = Files.newOutputStream(target)) {
 			copy(fis, fos);
 			return true;
 		} catch (IOException e) {

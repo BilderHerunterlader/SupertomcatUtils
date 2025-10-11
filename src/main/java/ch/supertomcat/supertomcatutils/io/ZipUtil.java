@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -56,9 +57,15 @@ public final class ZipUtil {
 							out.flush();
 						}
 					}
-					FileTime lastModifiedTime = zipEntry.getLastModifiedTime();
-					if (lastModifiedTime != null) {
-						Files.setLastModifiedTime(outputPath, lastModifiedTime);
+
+					try {
+						FileTime lastModifiedTime = zipEntry.getLastModifiedTime();
+						FileTime creationTime = zipEntry.getCreationTime();
+
+						BasicFileAttributeView attributes = Files.getFileAttributeView(outputPath, BasicFileAttributeView.class);
+						attributes.setTimes(lastModifiedTime, null, creationTime);
+					} catch (IOException e) {
+						logger.error("Could not set file times for: {}", outputPath, e);
 					}
 				}
 				zis.closeEntry();

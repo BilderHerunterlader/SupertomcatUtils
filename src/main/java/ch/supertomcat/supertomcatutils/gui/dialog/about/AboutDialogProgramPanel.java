@@ -1,11 +1,8 @@
 package ch.supertomcat.supertomcatutils.gui.dialog.about;
 
-import java.awt.Desktop;
 import java.awt.FlowLayout;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -18,6 +15,7 @@ import javax.swing.SpringLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.supertomcat.supertomcatutils.gui.FileExplorerUtil;
 import ch.supertomcat.supertomcatutils.gui.Icons;
 import ch.supertomcat.supertomcatutils.gui.layout.SpringUtilities;
 
@@ -103,12 +101,12 @@ public class AboutDialogProgramPanel extends JPanel {
 	 * @param folderPath Folder Path
 	 * @param referenceFolder Reference Folder or null
 	 */
-	public void addProgramFolderInformation(String title, String folderPath, File referenceFolder) {
-		File folder = new File(folderPath);
+	public void addProgramFolderInformation(String title, String folderPath, Path referenceFolder) {
+		Path folder = Paths.get(folderPath);
 		if (referenceFolder != null && folder.equals(referenceFolder)) {
 			return;
 		}
-		addInformation(pnlProgramDetailInfo, title, folder.getAbsolutePath(), InfoActionType.FOLDER);
+		addInformation(pnlProgramDetailInfo, title, folder.toAbsolutePath().toString(), InfoActionType.FOLDER);
 		SpringUtilities.makeCompactGrid(pnlProgramDetailInfo, pnlProgramDetailInfo.getComponentCount() / 3, 3, 0, 0, 5, 5);
 	}
 
@@ -213,7 +211,7 @@ public class AboutDialogProgramPanel extends JPanel {
 	 * @param folder Folder Path
 	 */
 	protected void openDirectory(String folder) {
-		openDirectory(new File(folder));
+		openDirectory(Paths.get(folder));
 	}
 
 	/**
@@ -221,12 +219,8 @@ public class AboutDialogProgramPanel extends JPanel {
 	 * 
 	 * @param folder Folder
 	 */
-	protected void openDirectory(File folder) {
-		try {
-			Desktop.getDesktop().open(folder);
-		} catch (IOException e) {
-			logger.error("Could not open Directory: {}", folder.getAbsolutePath(), e);
-		}
+	protected void openDirectory(Path folder) {
+		FileExplorerUtil.openDirectory(folder);
 	}
 
 	/**
@@ -235,17 +229,6 @@ public class AboutDialogProgramPanel extends JPanel {
 	 * @param emailAddress E-Mail Address
 	 */
 	protected void openEMail(String emailAddress) {
-		if (Desktop.isDesktopSupported()) {
-			Desktop desktop = Desktop.getDesktop();
-			if (desktop.isSupported(Desktop.Action.MAIL)) {
-				try {
-					desktop.mail(new URI("mailto:" + emailAddress));
-				} catch (URISyntaxException | IOException e) {
-					logger.error("Could not open email: {}", emailAddress, e);
-				}
-			}
-		} else {
-			logger.error("Could not open email, because Desktop is not supported: {}", emailAddress);
-		}
+		FileExplorerUtil.openEMail(emailAddress);
 	}
 }

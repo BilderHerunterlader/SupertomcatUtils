@@ -50,15 +50,15 @@ public class LocalizedEnumComboBoxRenderer<T extends Enum<T>> extends BasicCombo
 	@Override
 	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-		if (comp instanceof JLabel && enumClass.isInstance(value)) {
+		if (comp instanceof JLabel lbl && enumClass.isInstance(value)) {
 			T enumValue = enumClass.cast(value);
 			if (localizedStrings != null) {
 				String localizationString = localizedStrings.get(enumValue);
 				if (localizationString != null) {
-					((JLabel)comp).setText(Localization.getString(localizationString));
+					lbl.setText(Localization.getString(localizationString));
 				}
 			} else {
-				((JLabel)comp).setText(Localization.getString(enumValue.name()));
+				lbl.setText(Localization.getString(enumValue.name()));
 			}
 		}
 		return comp;

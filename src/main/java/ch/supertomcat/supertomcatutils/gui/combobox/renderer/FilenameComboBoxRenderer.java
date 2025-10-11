@@ -16,10 +16,10 @@ public class FilenameComboBoxRenderer extends BasicComboBoxRenderer {
 	@Override
 	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		Component comp = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-		if (value instanceof Path) {
-			setText(((Path)value).getFileName().toString());
-		} else if (value instanceof File) {
-			setText(((File)value).getName());
+		if (value instanceof Path path) {
+			setText(path.getFileName().toString());
+		} else if (value instanceof File path) {
+			setText(path.getName());
 		}
 		return comp;
 	}

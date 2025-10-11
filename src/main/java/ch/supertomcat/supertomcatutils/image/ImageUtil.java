@@ -158,8 +158,8 @@ public final class ImageUtil {
 		}
 
 		Image imgScaled = img.getScaledInstance(width, height, hints);
-		if (imgScaled instanceof BufferedImage) {
-			return (BufferedImage)imgScaled;
+		if (imgScaled instanceof BufferedImage bufferedImage) {
+			return bufferedImage;
 		}
 
 		BufferedImage imgScaledBuffered = new BufferedImage(newWidth, newHeight, type);

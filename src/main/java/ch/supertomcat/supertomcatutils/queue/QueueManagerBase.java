@@ -109,7 +109,7 @@ public abstract class QueueManagerBase<T, R> {
 	/**
 	 * Stop Flag
 	 */
-	protected boolean stop = false;
+	protected volatile boolean stop = false;
 
 	/**
 	 * Constructor
@@ -626,7 +626,6 @@ public abstract class QueueManagerBase<T, R> {
 					if (!stop) {
 						logger.error("Wait for task to complete was interrupted");
 					}
-					continue;
 				}
 			}
 		}

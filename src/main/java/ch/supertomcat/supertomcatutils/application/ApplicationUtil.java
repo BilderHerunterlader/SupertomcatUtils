@@ -2,24 +2,24 @@ package ch.supertomcat.supertomcatutils.application;
 
 import java.awt.Image;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 
@@ -32,6 +32,31 @@ import ch.supertomcat.supertomcatutils.exceptionhandler.SLF4JUncaughtExceptionHa
  * Utility class to initialize an application
  */
 public final class ApplicationUtil {
+	/**
+	 * Pattern for Bin Path
+	 */
+	private static final Pattern BIN_PATH_PATTERN = Pattern.compile("(?i)(.+?)[/\\\\]bin$");
+
+	/**
+	 * Log File Date Format
+	 */
+	public static final DateTimeFormatter LOG_FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	/**
+	 * Backup File Date Format
+	 */
+	public static final DateTimeFormatter BACKUP_FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd--HH-mm-ss-SSS");
+
+	/**
+	 * Basic Error Log Date Format
+	 */
+	private static final DateTimeFormatter BASIC_ERROR_LOG_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+	/**
+	 * LockFile Channel
+	 */
+	private static FileChannel lockFileChannel;
+
 	/**
 	 * LockFile
 	 */
@@ -57,14 +82,13 @@ public final class ApplicationUtil {
 			String[] paths = classpath.split(";");
 
 			// We check if there is a path, that ends on "/bin" or "\bin"
-			Pattern p = Pattern.compile("(?i)(.+?)[/\\\\]bin$");
 			for (String path : paths) {
-				Matcher m = p.matcher(path);
+				Matcher m = BIN_PATH_PATTERN.matcher(path);
 				if (m.matches()) {
 					// If the pattern matched, we get the path without the "\bin" or "/bin"
-					File f = new File(m.replaceAll("$1"));
-					if (f.exists()) {
-						String rootPath = f.getPath() + System.getProperty("file.separator");
+					Path f = Paths.get(m.replaceAll("$1"));
+					if (Files.exists(f)) {
+						String rootPath = f + System.getProperty("file.separator");
 						// Logging is not intialized at this time, so we write the warning to sysout
 						System.out.println("Rootpath of application detected: " + rootPath);
 						return rootPath;
@@ -78,9 +102,9 @@ public final class ApplicationUtil {
 			if (classpath.equalsIgnoreCase(jarFilename)) {
 				return "./";
 			} else if (m.matches()) {
-				File f = new File(m.replaceAll("$1"));
-				if (f.exists()) {
-					String rootPath = f.getPath() + System.getProperty("file.separator");
+				Path f = Paths.get(m.replaceAll("$1"));
+				if (Files.exists(f)) {
+					String rootPath = f + System.getProperty("file.separator");
 					// Logging is not intialized at this time, so we write the warning to sysout
 					System.out.println("Rootpath of application detected: " + rootPath);
 					return rootPath;
@@ -100,11 +124,11 @@ public final class ApplicationUtil {
 	 */
 	public static String getThisApplicationsJarFilename(Class<?> classInJarFile) {
 		try {
-			File jarFile = new File(classInJarFile.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-			if (jarFile.isFile()) {
+			Path jarFile = Paths.get(classInJarFile.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+			if (Files.exists(jarFile)) {
 				// Logging is not intialized at this time, so we write the warning to sysout
-				System.out.println("Jar-Filename detected: " + jarFile.getName());
-				return jarFile.getName();
+				System.out.println("Jar-Filename detected: " + jarFile.getFileName());
+				return jarFile.getFileName().toString();
 			}
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
@@ -166,38 +190,45 @@ public final class ApplicationUtil {
 	 * @param strLockFilename Lockfile Filename
 	 * @return True if successful
 	 */
-	@SuppressWarnings("resource")
 	public static synchronized boolean lockLockFile(String strLockFilePath, String strLockFilename) {
 		Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
 
 		// If directory does not exist, create it
-		File folder = new File(strLockFilePath);
-		if (!folder.exists() && !folder.mkdirs()) {
-			logger.error("Could not create directory: {}", folder.getAbsolutePath());
+		Path folder = Paths.get(strLockFilePath);
+		try {
+			Files.createDirectories(folder);
+		} catch (IOException e) {
+			logger.error("Could not create directory: {}", folder);
 			return false;
 		}
 
 		// Create lock file
-		File file = new File(strLockFilePath, strLockFilename);
-		if (!file.exists()) {
+		Path file = Paths.get(strLockFilePath, strLockFilename);
+		if (!Files.exists(file)) {
 			try {
 				// If file does not exist, create it
-				if (!file.createNewFile()) {
-					logger.error("Could not create Lock-File: {}", file.getAbsolutePath());
-					return false;
-				}
+				Files.createFile(file);
 			} catch (IOException e) {
-				logger.error("Could not create Lock-File: {}", file.getAbsolutePath(), e);
+				logger.error("Could not create Lock-File: {}", file, e);
 				return false;
 			}
 		}
 
 		try {
+			FileChannel channel = FileChannel.open(file, StandardOpenOption.APPEND);
+			lockFileChannel = channel;
 			// Lock the file
-			lockFile = new RandomAccessFile(file, "rw").getChannel().tryLock();
-			return lockFile != null;
+			lockFile = lockFileChannel.tryLock();
+			if (lockFile == null) {
+				logger.error("Could not lock Lock-File: {}", file);
+				channel.close();
+				lockFileChannel = null;
+				return false;
+			}
+			return true;
 		} catch (IOException e) {
-			logger.error("Could not lock Lock-File: {}", file.getAbsolutePath(), e);
+			logger.error("Could not lock Lock-File: {}", file, e);
+			closeLockFileChannel();
 			return false;
 		}
 	}
@@ -208,7 +239,11 @@ public final class ApplicationUtil {
 	 * @return True if successful, false otherwise
 	 */
 	public static synchronized boolean releaseLockFile() {
-		if (lockFile != null) {
+		try {
+			if (lockFile == null) {
+				return true;
+			}
+
 			try {
 				lockFile.release();
 				lockFile = null;
@@ -218,8 +253,21 @@ public final class ApplicationUtil {
 				logger.error("Could not release Lock-File", e);
 				return false;
 			}
+		} finally {
+			closeLockFileChannel();
 		}
-		return true;
+	}
+
+	private static synchronized void closeLockFileChannel() {
+		if (lockFileChannel != null) {
+			try {
+				lockFileChannel.close();
+				lockFileChannel = null;
+			} catch (IOException e) {
+				Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
+				logger.error("Could not close Lock-File channel", e);
+			}
+		}
 	}
 
 	/**
@@ -237,37 +285,33 @@ public final class ApplicationUtil {
 	public static void deleteOldLogFiles(int days, String logFileName, String logPath) {
 		Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
 
-		final Pattern patternLogFiles = Pattern.compile(logFileName + "\\.([0-9]{4}-[0-9]{2}-[0-9]{2})");
-		File logDir = new File(logPath);
-		if (logDir.exists() && logDir.isDirectory()) {
-			File[] logFiles = logDir.listFiles(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return patternLogFiles.matcher(name).matches();
-				}
-			});
-			if (logFiles == null) {
-				logger.error("Could not get file list of directory: {}", logDir.getAbsolutePath());
-				return;
+		Path logDir = Paths.get(logPath);
+		if (!Files.exists(logDir) || !Files.isDirectory(logDir)) {
+			return;
+		}
+
+		final Pattern patternLogFiles = Pattern.compile(logFileName + "\\.(\\d{4}-\\d{2}-\\d{2})");
+
+		LocalDate thresholdDate = LocalDate.now().minusDays(days);
+
+		try (Stream<Path> stream = Files.list(logDir)) {
+			stream.filter(x -> patternLogFiles.matcher(x.getFileName().toString()).matches()).forEach(x -> deleteOldLogFileIfNecessary(thresholdDate, patternLogFiles, x));
+		} catch (IOException e) {
+			logger.error("Could not delete old logfiles in folder: {}", logDir);
+		}
+	}
+
+	private static void deleteOldLogFileIfNecessary(LocalDate thresholdDate, Pattern patternLogFiles, Path file) {
+		try {
+			Matcher matcher = patternLogFiles.matcher(file.getFileName().toString());
+			String strDateOfFile = matcher.replaceAll("$1");
+			LocalDate dateOfFile = LocalDate.parse(strDateOfFile, LOG_FILE_DATE_FORMAT);
+			if (thresholdDate.isAfter(dateOfFile)) {
+				Files.delete(file);
 			}
-
-			final long millisecondsPerDay = 24 * 60 * 60 * 1000L;
-			Date beforeXDays = new Date((new Date().getTime()) - (millisecondsPerDay * days));
-
-			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-			for (File logFile : logFiles) {
-				try {
-					Matcher matcher = patternLogFiles.matcher(logFile.getName());
-					String strDateOfFile = matcher.replaceAll("$1");
-					Date dateOfFile = df.parse(strDateOfFile);
-
-					if (beforeXDays.after(dateOfFile) && !logFile.delete()) {
-						logger.error("Could not delete old Log-File: {}", logFile.getAbsolutePath());
-					}
-				} catch (NumberFormatException | ParseException e) {
-					logger.error("Could not check Log-File: {}", logFile.getAbsolutePath(), e);
-				}
-			}
+		} catch (DateTimeParseException | IOException e) {
+			Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
+			logger.error("Could not check or delete Log-File: {}", file, e);
 		}
 	}
 
@@ -283,9 +327,10 @@ public final class ApplicationUtil {
 	 */
 	public static void logApplicationInfo() {
 		Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
-		logger.info("{} {}, Java-Version: {}, Java-Vendor: {}, OS: {} {} {}, Processors: {}, VM Max Memory: {}", ApplicationProperties.getProperty("ApplicationName"), ApplicationProperties
-				.getProperty("ApplicationVersion"), System.getProperty("java.version"), System.getProperty("java.vendor"), System
-						.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"), Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().maxMemory());
+		logger.info("{} {}, Java-Version: {}, Java-Vendor: {}, OS: {} {} {}, Processors: {}, VM Max Memory: {}", ApplicationProperties
+				.getProperty(ApplicationMain.APPLICATION_NAME), ApplicationProperties.getProperty(ApplicationMain.APPLICATION_VERSION), System.getProperty("java.version"), System
+						.getProperty("java.vendor"), System
+								.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"), Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().maxMemory());
 	}
 
 	/**
@@ -295,14 +340,13 @@ public final class ApplicationUtil {
 	 * @param file File
 	 * @param errorMessage Error Message
 	 */
-	public static void writeBasicErrorLogfile(File file, String errorMessage) {
-		try (FileOutputStream out = new FileOutputStream(file, true); BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out))) {
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String dateTime = dateFormat.format(new Date());
-			bw.write(dateTime + ": " + errorMessage);
-			bw.flush();
+	public static void writeBasicErrorLogfile(Path file, String errorMessage) {
+		try (BufferedWriter writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.WRITE)) {
+			String dateTime = LocalDateTime.now().format(BASIC_ERROR_LOG_DATE_FORMAT);
+			writer.write(dateTime + ": " + errorMessage);
+			writer.flush();
 		} catch (IOException e) {
-			System.err.println("Could not write error log file: " + file.getAbsolutePath());
+			System.err.println("Could not write error log file: " + file);
 			e.printStackTrace();
 		}
 	}
@@ -314,57 +358,35 @@ public final class ApplicationUtil {
 	 * @param filename Filename
 	 * @param daysToKeepBackup Days to keep backups
 	 */
-	public static void deleteOldBackupFiles(File folder, final String filename, int daysToKeepBackup) {
+	public static void deleteOldBackupFiles(Path folder, final String filename, int daysToKeepBackup) {
 		Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
 
-		final long now = System.currentTimeMillis();
-		final Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.DATE, -daysToKeepBackup);
-		final Date backupDeleteDate = cal.getTime();
-		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS");
-		final long backupDeleteTime = daysToKeepBackup * 24 * 60 * 60 * 1000L;
+		if (!Files.exists(folder) || !Files.isDirectory(folder)) {
+			return;
+		}
 
-		// Delete old backup-Files
-		File[] backupFiles = folder.listFiles(new FileFilter() {
-			private final Pattern oldBackupPattern = Pattern.compile("^" + filename + ".bak-([0-9]+)$");
-			private final Pattern backupPattern = Pattern.compile("^" + filename + "-([0-9]{4}-[0-9]{2}-[0-9]{2}--[0-9]{2}-[0-9]{2}-[0-9]{2}-[0-9]{3})$");
+		final Pattern backupPattern = Pattern.compile("^" + filename + "-(\\d{4}-\\d{2}-\\d{2}--\\d{2}-\\d{2}-\\d{2}-\\d{3})$");
 
-			@Override
-			public boolean accept(File pathname) {
-				Matcher matcher = backupPattern.matcher(pathname.getName());
-				if (matcher.matches()) {
-					try {
-						Date backupDate = dateFormat.parse(matcher.group(1));
-						if (backupDate.before(backupDeleteDate)) {
-							return true;
-						}
-					} catch (ParseException e) {
-						logger.error("Could not parse datetime of backup file: {}", pathname.getAbsolutePath(), e);
-					}
-					return false;
-				}
+		LocalDateTime thresholdDateTime = LocalDateTime.now().minusDays(daysToKeepBackup);
 
-				matcher = oldBackupPattern.matcher(pathname.getName());
-				if (matcher.matches()) {
-					try {
-						long backupTime = Long.parseLong(matcher.group(1));
-						if ((now - backupTime) > backupDeleteTime) {
-							return true;
-						}
-					} catch (NumberFormatException nfe) {
-						logger.error("Could not parse datetime of backup file: {}", pathname.getAbsolutePath(), nfe);
-					}
-					return false;
-				}
-				return false;
+		try (Stream<Path> stream = Files.list(folder)) {
+			stream.filter(x -> backupPattern.matcher(x.getFileName().toString()).matches()).forEach(x -> deleteOldBackupFileIfNecessary(thresholdDateTime, backupPattern, x));
+		} catch (IOException e) {
+			logger.error("Could not delete old backup files in folder: {}", folder);
+		}
+	}
+
+	private static void deleteOldBackupFileIfNecessary(LocalDateTime thresholdDateTime, Pattern backupPattern, Path file) {
+		try {
+			Matcher matcher = backupPattern.matcher(file.getFileName().toString());
+			String strDateOfFile = matcher.replaceAll("$1");
+			LocalDateTime dateTimeOfFile = LocalDateTime.parse(strDateOfFile, BACKUP_FILE_DATE_FORMAT);
+			if (thresholdDateTime.isAfter(dateTimeOfFile)) {
+				Files.delete(file);
 			}
-		});
-		if (backupFiles != null) {
-			for (File oldBackupFile : backupFiles) {
-				if (!oldBackupFile.delete()) {
-					logger.error("Could not delete old backup file: {}", oldBackupFile.getAbsolutePath());
-				}
-			}
+		} catch (DateTimeParseException | IOException e) {
+			Logger logger = LoggerFactory.getLogger(ApplicationUtil.class);
+			logger.error("Could not check or delete Backup-File: {}", file, e);
 		}
 	}
 

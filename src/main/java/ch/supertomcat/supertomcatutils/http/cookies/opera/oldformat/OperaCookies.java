@@ -28,7 +28,7 @@ public final class OperaCookies {
 	 * @param cookieFile
 	 * @return Cookies
 	 */
-	public static List<BrowserCookie> getCookiesFromOpera(String domain, String hosts[], String paths[], String cookieFile) {
+	public static List<BrowserCookie> getCookiesFromOpera(String domain, String[] hosts, String[] paths, String cookieFile) {
 		if (cookieFile.isEmpty()) {
 			return new ArrayList<>();
 		}

@@ -1,12 +1,13 @@
 package ch.supertomcat.supertomcatutils.application;
 
 import java.awt.Image;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -30,6 +31,61 @@ import ch.supertomcat.supertomcatutils.io.FileUtil;
  * Class for starting application
  */
 public abstract class ApplicationMain {
+	/**
+	 * Application Name Property Name
+	 */
+	public static final String APPLICATION_NAME = "ApplicationName";
+
+	/**
+	 * Application Short Name Property Name
+	 */
+	public static final String APPLICATION_SHORT_NAME = "ApplicationShortName";
+
+	/**
+	 * Application Version Property Name
+	 */
+	public static final String APPLICATION_VERSION = "ApplicationVersion";
+
+	/**
+	 * Application Path Property Name
+	 */
+	public static final String APPLICATION_PATH = "ApplicationPath";
+
+	/**
+	 * Program Data Path Property Name
+	 */
+	public static final String PROGRAM_DATA_PATH = "ProgramDataPath";
+
+	/**
+	 * Jar Filename Property Name
+	 */
+	public static final String JAR_FILENAME = "JarFilename";
+
+	/**
+	 * Profile Path Property Name
+	 */
+	public static final String PROFILE_PATH = "ProfilePath";
+
+	/**
+	 * Logs Path Property Name
+	 */
+	public static final String LOGS_PATH = "LogsPath";
+
+	/**
+	 * License Name Property Name
+	 */
+	public static final String LICENSE_NAME = "LicenseName";
+
+	/**
+	 * License Text Property Name
+	 */
+	public static final String LICENSE_TEXT = "LicenseText";
+
+	/**
+	 * Database Path Property Name
+	 */
+	public static final String DATABASE_PATH = "DatabasePath";
+
 	/**
 	 * Application Short Name
 	 */
@@ -116,7 +172,7 @@ public abstract class ApplicationMain {
 		this.mainClass = mainClass;
 		this.additionalPaths.addAll(additionalPaths);
 		if (overwritablePaths.isEmpty()) {
-			this.overwritablePaths.add("LogsPath");
+			this.overwritablePaths.add(LOGS_PATH);
 			this.overwritablePaths.addAll(additionalPaths);
 		} else {
 			this.overwritablePaths.addAll(overwritablePaths);
@@ -136,7 +192,7 @@ public abstract class ApplicationMain {
 
 		initializeJarFilenameAndApplicationPathProperties(jarFilename, applicationPath);
 
-		String programUserDir = System.getProperty("user.home") + FileUtil.FILE_SEPERATOR + "." + ApplicationProperties.getProperty("ApplicationShortName") + FileUtil.FILE_SEPERATOR;
+		String programUserDir = System.getProperty("user.home") + FileUtil.FILE_SEPERATOR + "." + ApplicationProperties.getProperty(APPLICATION_SHORT_NAME) + FileUtil.FILE_SEPERATOR;
 		initializeProfileAndLogsPathProperties(programUserDir);
 
 		initializeProgramDataPathProperties(applicationPath, programUserDir);
@@ -150,7 +206,7 @@ public abstract class ApplicationMain {
 		initializeLogging();
 
 		if (singleInstance) {
-			ensureSingleInstance(programUserDir, ApplicationProperties.getProperty("ApplicationShortName") + ".lock");
+			ensureSingleInstance(programUserDir, ApplicationProperties.getProperty(APPLICATION_SHORT_NAME) + ".lock");
 		}
 
 		// Write some useful info to the logfile
@@ -217,62 +273,71 @@ public abstract class ApplicationMain {
 	 * @return True if application could be restarted, false otherwise
 	 */
 	protected boolean restartApplication() {
-		String jarFilename = ApplicationProperties.getProperty("JarFilename");
+		String jarFilename = ApplicationProperties.getProperty(JAR_FILENAME);
 		if (jarFilename == null || jarFilename.isEmpty()) {
 			LoggerFactory.getLogger(getClass()).error("Could not restart application: JarFilename Application Property is null or empty: {}", jarFilename);
 			return false;
 		}
 
 		try {
-			String applicationAbsolutePath = new File(ApplicationProperties.getProperty("ApplicationPath")).getAbsolutePath();
+			String applicationAbsolutePath = Paths.get(ApplicationProperties.getProperty(APPLICATION_PATH)).toAbsolutePath().toString();
 			if (!applicationAbsolutePath.endsWith(FileUtil.FILE_SEPERATOR)) {
 				applicationAbsolutePath += FileUtil.FILE_SEPERATOR;
 			}
 
-			String jreBinPath = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR;
-
-			String jreJavaw = jreBinPath + "javaw";
-			String jreJava = jreBinPath + "java";
-
-			File fJreJavaw;
-			File fJreJava;
-			if (Platform.isWindows()) {
-				fJreJavaw = new File(jreJavaw + ".exe");
-				fJreJava = new File(jreJava + ".exe");
-			} else {
-				fJreJavaw = new File(jreJavaw);
-				fJreJava = new File(jreJava);
-			}
-
-			List<String> arguments = new ArrayList<>();
-
-			if (fJreJavaw.exists()) {
-				arguments.add(jreJavaw);
-			} else {
-				if (fJreJava.exists()) {
-					arguments.add(jreJava);
-				}
-			}
-
-			if (arguments.isEmpty()) {
+			String javaExePath = getJavaExePath();
+			if (javaExePath == null) {
 				LoggerFactory.getLogger(getClass()).error("Could not restart application: Could not find java executable");
 				return false;
 			}
 
+			List<String> arguments = new ArrayList<>();
+			arguments.add(javaExePath);
 			arguments.add("-jar");
-			arguments.add(applicationAbsolutePath + ApplicationProperties.getProperty("JarFilename"));
+			arguments.add(applicationAbsolutePath + ApplicationProperties.getProperty(JAR_FILENAME));
 
 			new ProcessBuilder(arguments).start();
 
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
+				// Do not log exception
 			}
 			return true;
 		} catch (Exception e) {
 			LoggerFactory.getLogger(getClass()).error("Could not restart application", e);
 			return false;
 		}
+	}
+
+	/**
+	 * @return Java Executable Path or null
+	 */
+	protected String getJavaExePath() {
+		String jreBinPath = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR;
+
+		String jreJavaw = jreBinPath + "javaw";
+		String jreJava = jreBinPath + "java";
+
+		Path fJreJavaw;
+		Path fJreJava;
+		if (Platform.isWindows()) {
+			fJreJavaw = Paths.get(jreJavaw + ".exe");
+			fJreJava = Paths.get(jreJava + ".exe");
+		} else {
+			fJreJavaw = Paths.get(jreJavaw);
+			fJreJava = Paths.get(jreJava);
+		}
+
+		if (Files.exists(fJreJavaw)) {
+			return jreJavaw;
+		}
+
+		if (Files.exists(fJreJava)) {
+			return jreJava;
+		}
+
+		return null;
 	}
 
 	/**
@@ -314,7 +379,7 @@ public abstract class ApplicationMain {
 	 */
 	protected String getApplicationPath() {
 		String jarFilename = ApplicationUtil.getThisApplicationsJarFilename(mainClass);
-		return ApplicationUtil.getThisApplicationsPath(!jarFilename.isEmpty() ? jarFilename : ApplicationProperties.getProperty("ApplicationShortName") + ".jar");
+		return ApplicationUtil.getThisApplicationsPath(!jarFilename.isEmpty() ? jarFilename : ApplicationProperties.getProperty(APPLICATION_SHORT_NAME) + ".jar");
 	}
 
 	/**
@@ -324,8 +389,8 @@ public abstract class ApplicationMain {
 	 * @param applicationPath Application Path
 	 */
 	protected void initializeJarFilenameAndApplicationPathProperties(String jarFilename, String applicationPath) {
-		ApplicationProperties.setProperty("JarFilename", jarFilename);
-		ApplicationProperties.setProperty("ApplicationPath", applicationPath);
+		ApplicationProperties.setProperty(JAR_FILENAME, jarFilename);
+		ApplicationProperties.setProperty(APPLICATION_PATH, applicationPath);
 	}
 
 	/**
@@ -334,8 +399,8 @@ public abstract class ApplicationMain {
 	 * @param programUserDir Program User Directory
 	 */
 	protected void initializeProfileAndLogsPathProperties(String programUserDir) {
-		ApplicationProperties.setProperty("ProfilePath", programUserDir);
-		ApplicationProperties.setProperty("LogsPath", programUserDir);
+		ApplicationProperties.setProperty(PROFILE_PATH, programUserDir);
+		ApplicationProperties.setProperty(LOGS_PATH, programUserDir);
 	}
 
 	/**
@@ -349,7 +414,7 @@ public abstract class ApplicationMain {
 		if (Platform.isWindows()) {
 			String programDataEnvPath = System.getenv("ProgramData");
 			if (programDataEnvPath != null) {
-				programDataPath = programDataEnvPath + FileUtil.FILE_SEPERATOR + ApplicationProperties.getProperty("ApplicationName") + FileUtil.FILE_SEPERATOR;
+				programDataPath = programDataEnvPath + FileUtil.FILE_SEPERATOR + ApplicationProperties.getProperty(APPLICATION_NAME) + FileUtil.FILE_SEPERATOR;
 			} else {
 				programDataPath = applicationPath;
 			}
@@ -357,7 +422,7 @@ public abstract class ApplicationMain {
 			programDataPath = applicationPath;
 		}
 
-		ApplicationProperties.setProperty("ProgramDataPath", programDataPath);
+		ApplicationProperties.setProperty(PROGRAM_DATA_PATH, programDataPath);
 	}
 
 	/**
@@ -407,11 +472,11 @@ public abstract class ApplicationMain {
 	 * @throws IOException
 	 */
 	protected Properties readDirectoriesFile() throws IOException {
-		File file = new File(ApplicationProperties.getProperty("ApplicationPath") + "directories.properties");
-		if (!file.exists()) {
+		Path file = Paths.get(ApplicationProperties.getProperty(APPLICATION_PATH) + "directories.properties");
+		if (!Files.exists(file)) {
 			return null;
 		}
-		String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+		String content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
 
 		Properties directoriesProperties = new Properties();
 		// We do the replace, because load will treat backslashes as escape characters
@@ -423,9 +488,9 @@ public abstract class ApplicationMain {
 	 * Initialize Logging
 	 */
 	protected void initializeLogging() {
-		String logFilename = ApplicationProperties.getProperty("ApplicationShortName") + ".log";
+		String logFilename = ApplicationProperties.getProperty(APPLICATION_SHORT_NAME) + ".log";
 		// Loggers can be created after this point
-		System.setProperty("applicationlog4jlogfile", ApplicationProperties.getProperty("LogsPath") + FileUtil.FILE_SEPERATOR + logFilename);
+		System.setProperty("applicationlog4jlogfile", ApplicationProperties.getProperty(LOGS_PATH) + FileUtil.FILE_SEPERATOR + logFilename);
 		// Get logger to make sure logging is actually initiliazed
 		LoggerFactory.getLogger(mainClass);
 		ApplicationUtil.initializeSLF4JUncaughtExceptionHandler();
@@ -439,13 +504,13 @@ public abstract class ApplicationMain {
 	protected void parseDefaultCommandLine(String[] args) {
 		for (String arg : args) {
 			if (arg.equalsIgnoreCase("-version")) {
-				System.out.print(ApplicationProperties.getProperty("ApplicationVersion"));
+				System.out.print(ApplicationProperties.getProperty(APPLICATION_VERSION));
 				System.exit(0);
 			} else if (arg.equalsIgnoreCase("-versionNumber")) {
-				System.out.print(ApplicationProperties.getProperty("ApplicationVersion").replace(".", ""));
+				System.out.print(ApplicationProperties.getProperty(APPLICATION_VERSION).replace(".", ""));
 				System.exit(0);
 			} else if (arg.equalsIgnoreCase("-help")) {
-				String help = ApplicationProperties.getProperty("ApplicationName") + " v" + ApplicationProperties.getProperty("ApplicationVersion") + "\n\n";
+				String help = ApplicationProperties.getProperty(APPLICATION_NAME) + " v" + ApplicationProperties.getProperty(APPLICATION_VERSION) + "\n\n";
 				help += "Command Line Arguments:\n";
 				help += "-version\t\tPrints the Version of the program (e.g. 1.2.0)\n\n";
 				help += "-versionNumber\t\tPrints the VersionNumber of the program (e.g. 120)\n\n";
@@ -495,7 +560,7 @@ public abstract class ApplicationMain {
 		// Logger is not initialized at this point
 		System.err.println(message);
 		t.printStackTrace();
-		ApplicationUtil.writeBasicErrorLogfile(new File(applicationShortName + "-Error.log"), message + ":\n" + ApplicationUtil.formatStackTrace(t));
+		ApplicationUtil.writeBasicErrorLogfile(Paths.get(applicationShortName + "-Error.log"), message + ":\n" + ApplicationUtil.formatStackTrace(t));
 	}
 
 	/**
@@ -523,8 +588,8 @@ public abstract class ApplicationMain {
 	 * Delete old log files
 	 */
 	protected void deleteOldLogFiles() {
-		String logFilename = ApplicationProperties.getProperty("ApplicationShortName") + ".log";
-		ApplicationUtil.deleteOldLogFiles(7, logFilename, ApplicationProperties.getProperty("LogsPath"));
+		String logFilename = ApplicationProperties.getProperty(APPLICATION_SHORT_NAME) + ".log";
+		ApplicationUtil.deleteOldLogFiles(7, logFilename, ApplicationProperties.getProperty(LOGS_PATH));
 	}
 
 	/**
