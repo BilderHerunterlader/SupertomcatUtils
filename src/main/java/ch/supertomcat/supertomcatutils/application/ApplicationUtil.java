@@ -124,8 +124,8 @@ public final class ApplicationUtil {
 	 */
 	public static String getThisApplicationsJarFilename(Class<?> classInJarFile) {
 		try {
-			Path jarFile = Paths.get(classInJarFile.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-			if (Files.exists(jarFile)) {
+			Path jarFile = Paths.get(classInJarFile.getProtectionDomain().getCodeSource().getLocation().toURI());
+			if (Files.exists(jarFile) && Files.isRegularFile(jarFile)) {
 				// Logging is not intialized at this time, so we write the warning to sysout
 				System.out.println("Jar-Filename detected: " + jarFile.getFileName());
 				return jarFile.getFileName().toString();
