@@ -6,7 +6,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
 import java.util.Objects;
 
-import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -15,8 +15,10 @@ import javax.swing.table.TableCellRenderer;
  * TableCellRenderer for alternate coloring.
  * Some Tables in BH are using a extended class of this class.
  * The renderer returns a JCheckBox.
+ * 
+ * @param <E> ComboBox Item Type
  */
-public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCellRenderer {
+public class DefaultComboBoxColorRowRenderer<E> extends JComboBox<E> implements TableCellRenderer {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -42,7 +44,7 @@ public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCe
 	/**
 	 * Constructor
 	 */
-	public DefaultBooleanColorRowRenderer() {
+	public DefaultComboBoxColorRowRenderer() {
 		this(Color.WHITE, Color.decode("#F0F8FF"), null, null);
 	}
 
@@ -54,7 +56,7 @@ public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCe
 	 * @param foregroundColor Foreground Color or null for default
 	 * @param alternateForegroundColor Alternate Foreground Color or null for default
 	 */
-	public DefaultBooleanColorRowRenderer(Color backgroundColor, Color alternateBackgroundColor, Color foregroundColor, Color alternateForegroundColor) {
+	public DefaultComboBoxColorRowRenderer(Color backgroundColor, Color alternateBackgroundColor, Color foregroundColor, Color alternateForegroundColor) {
 		this.backgroundColor = backgroundColor;
 		this.alternateBackgroundColor = alternateBackgroundColor;
 		this.foregroundColor = foregroundColor;
@@ -65,9 +67,7 @@ public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCe
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 		prepareForegroundColor(this, table, value, isSelected, hasFocus, row, column);
 		prepareBackgroundColor(this, table, value, isSelected, hasFocus, row, column);
-		prepareValue(this, table, value, isSelected, hasFocus, row, column);
 		this.setOpaque(true);
-		this.setHorizontalAlignment(CENTER);
 		return this;
 	}
 
@@ -123,23 +123,6 @@ public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCe
 			}
 		}
 		comp.setForeground(c);
-	}
-
-	/**
-	 * Sets a text to the JLabel
-	 * 
-	 * @param cb The JCheckBox
-	 * @param table The Table
-	 * @param value The Value
-	 * @param isSelected Is the cell selected
-	 * @param hasFocus Has the cell the focus
-	 * @param row Index of the row
-	 * @param column Index of the Column
-	 */
-	public void prepareValue(JCheckBox cb, JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		if (value instanceof Boolean booleanValue) {
-			cb.setSelected(booleanValue);
-		}
 	}
 
 	/**
@@ -212,7 +195,7 @@ public class DefaultBooleanColorRowRenderer extends JCheckBox implements TableCe
 	@Override
 	protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
 		switch (propertyName) {
-			case MODEL_CHANGED_PROPERTY, TEXT_CHANGED_PROPERTY, MNEMONIC_CHANGED_PROPERTY, MARGIN_CHANGED_PROPERTY, VERTICAL_ALIGNMENT_CHANGED_PROPERTY, HORIZONTAL_ALIGNMENT_CHANGED_PROPERTY, VERTICAL_TEXT_POSITION_CHANGED_PROPERTY, HORIZONTAL_TEXT_POSITION_CHANGED_PROPERTY, BORDER_PAINTED_CHANGED_PROPERTY, FOCUS_PAINTED_CHANGED_PROPERTY, ROLLOVER_ENABLED_CHANGED_PROPERTY, CONTENT_AREA_FILLED_CHANGED_PROPERTY, ICON_CHANGED_PROPERTY, PRESSED_ICON_CHANGED_PROPERTY, SELECTED_ICON_CHANGED_PROPERTY, ROLLOVER_ICON_CHANGED_PROPERTY, ROLLOVER_SELECTED_ICON_CHANGED_PROPERTY, DISABLED_ICON_CHANGED_PROPERTY, DISABLED_SELECTED_ICON_CHANGED_PROPERTY:
+			case "model", "lightWeightPopupEnabled", "editable", "maximumRowCount", "renderer", "editor", "prototypeDisplayValue", "action", "enabled":
 				super.firePropertyChange(propertyName, oldValue, newValue);
 				break;
 			case "font", "foreground":

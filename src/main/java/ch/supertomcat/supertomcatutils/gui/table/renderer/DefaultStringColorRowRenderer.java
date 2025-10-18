@@ -5,13 +5,15 @@ import java.awt.Component;
 
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 /**
  * TableCellRenderer for alternate coloring.
- * The renderer returns a JLabel.
+ * The renderer returns a JLabel. Used {@link DefaultTableCellRenderer} as base instead of JLabel directly, because it contains overridden methods of JLabel for
+ * performance improvements.
  */
-public class DefaultStringColorRowRenderer extends JLabel implements TableCellRenderer {
+public class DefaultStringColorRowRenderer extends DefaultTableCellRenderer implements TableCellRenderer {
 	private static final long serialVersionUID = 1L;
 
 	/**
