@@ -18,9 +18,9 @@ import ch.supertomcat.supertomcatutils.gui.Localization;
 public final class JTextComponentCopyAndPaste {
 	private static final CopyAndPasteMouseAdapter mouseListener = new CopyAndPasteMouseAdapter();
 
-	private static final ImageIcon COPY_ICON = Icons.getTangoIcon("actions/edit-copy.png", 16);
-	private static final ImageIcon PASTE_ICON = Icons.getTangoIcon("actions/edit-paste.png", 16);
-	private static final ImageIcon DELETE_ICON = Icons.getTangoIcon("actions/edit-delete.png", 16);
+	private static final ImageIcon COPY_ICON = Icons.getTangoSVGIcon("actions/edit-copy.svg", 16);
+	private static final ImageIcon PASTE_ICON = Icons.getTangoSVGIcon("actions/edit-paste.svg", 16);
+	private static final ImageIcon DELETE_ICON = Icons.getTangoSVGIcon("actions/edit-delete.svg", 16);
 
 	private JTextComponentCopyAndPaste() {
 	}

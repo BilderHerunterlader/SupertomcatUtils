@@ -188,7 +188,7 @@ public class AboutDialogProgramPanel extends JPanel {
 	 * @return Directory Button
 	 */
 	protected JButton createDirectoryButton(String folder) {
-		JButton btnPath = new JButton(Icons.getTangoIcon("places/folder.png", 16));
+		JButton btnPath = new JButton(Icons.getTangoSVGIcon("places/folder.svg", 16));
 		btnPath.addActionListener(e -> openDirectory(folder));
 		return btnPath;
 	}
@@ -200,7 +200,7 @@ public class AboutDialogProgramPanel extends JPanel {
 	 * @return E-Mail Button
 	 */
 	protected JButton createEMailButton(String emailAddress) {
-		JButton btnEMail = new JButton(Icons.getTangoIcon("actions/mail-message-new.png", 16));
+		JButton btnEMail = new JButton(Icons.getTangoSVGIcon("actions/mail-message-new.svg", 16));
 		btnEMail.addActionListener(e -> openEMail(emailAddress));
 		return btnEMail;
 	}
