@@ -60,6 +60,8 @@ public final class UnitFormatUtil {
 
 	private static final String[] BITRATE_UNITS = { "B/s", "KiB/s", "MiB/s", "GiB/s", "TiB/s" };
 
+	private static final DecimalFormat SIZE_DECIMAL_FORMAT = new DecimalFormat("0.##");
+
 	/**
 	 * Constructor
 	 */
@@ -94,7 +96,7 @@ public final class UnitFormatUtil {
 			}
 		}
 		sizec = Math.round(sizec * 100) / 100.0;
-		return (new DecimalFormat("0.##").format(sizec)) + " " + SIZE_UNITS[c];
+		return SIZE_DECIMAL_FORMAT.format(sizec) + " " + SIZE_UNITS[c];
 	}
 
 	/**

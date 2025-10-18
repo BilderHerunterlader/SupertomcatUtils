@@ -1,6 +1,7 @@
 package ch.supertomcat.supertomcatutils.gui;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
@@ -17,6 +18,8 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kitfox.svg.app.beans.SVGIcon;
+
 import ch.supertomcat.supertomcatutils.image.ImageSizeWaiter;
 
 /**
@@ -26,7 +29,9 @@ public final class Icons {
 	private static final String DUMMY_ICON_FILENAME = "dummy.png";
 	private static final String APPL_ICON_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/%s";
 	private static final String APPL_ICON_SIZE_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/%dx%d/%s";
+	private static final String APPL_ICON_SVG_RESOURCE_FORMAT = "/" + Icons.class.getPackage().getName().replace(".", "/") + "/icons/svg/%s";
 	private static final String TANGO_ICON_RESOURCE_FORMAT = "/org/freedesktop/tango/%dx%d/%s";
+	private static final String TANGO_ICON_SVG_RESOURCE_FORMAT = "/org/freedesktop/tango/scalable/%s";
 
 	private static final int[] TANGO_ICON_SIZES = { 16, 22, 32 };
 
@@ -96,6 +101,39 @@ public final class Icons {
 	 */
 	public static ImageIcon getTangoIcon(String resource, int size) {
 		return getIcon(String.format(TANGO_ICON_RESOURCE_FORMAT, size, size, resource));
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getTangoSVGIcon(String resource) {
+		return getTangoSVGIcon(resource, -1, -1);
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Size
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getTangoSVGIcon(String resource, int size) {
+		return getTangoSVGIcon(resource, size, size);
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param width Preferred Width
+	 * @param height Preferred Height
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getTangoSVGIcon(String resource, int width, int height) {
+		return getSVGIcon(String.format(TANGO_ICON_SVG_RESOURCE_FORMAT, resource), width, height);
 	}
 
 	/**
@@ -183,6 +221,27 @@ public final class Icons {
 	}
 
 	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getApplSVGIcon(String resource) {
+		return getApplSVGIcon(resource, -1);
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Size
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getApplSVGIcon(String resource, int size) {
+		return getSVGIcon(String.format(APPL_ICON_SVG_RESOURCE_FORMAT, size, size, resource));
+	}
+
+	/**
 	 * Returns a Multi Resolution ImageIcon for the given resource
 	 * 
 	 * @param resource Resource
@@ -263,6 +322,57 @@ public final class Icons {
 	 */
 	public static ImageIcon getIcon(String resource) {
 		return new ImageIcon(getImage(resource));
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getSVGIcon(String resource) {
+		return getSVGIcon(resource, -1, -1);
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param size Preferred Size
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getSVGIcon(String resource, int size) {
+		return getSVGIcon(resource, size, size);
+	}
+
+	/**
+	 * Returns an ImageIcon for the given resource
+	 * 
+	 * @param resource Resource
+	 * @param width Preferred Width
+	 * @param height Preferred Height
+	 * @return ImageIcon
+	 */
+	public static ImageIcon getSVGIcon(String resource, int width, int height) {
+		try {
+			URL resourceURL = Icons.class.getResource(resource);
+			if (resourceURL != null) {
+				SVGIcon svgIcon = new SVGIcon();
+				if (width > 0 && height > 0) {
+					svgIcon.setPreferredSize(new Dimension(width, height));
+				}
+				svgIcon.setAutosize(SVGIcon.AUTOSIZE_STRETCH);
+				svgIcon.setAntiAlias(true);
+				svgIcon.setSvgURI(resourceURL.toURI());
+				return svgIcon;
+			} else {
+				logger.error("Could not load image: {}", resource);
+				return new ImageIcon(dummy16);
+			}
+		} catch (Exception e) {
+			logger.error("Could not load image: {}", resource, e);
+			return new ImageIcon(dummy16);
+		}
 	}
 
 	/**

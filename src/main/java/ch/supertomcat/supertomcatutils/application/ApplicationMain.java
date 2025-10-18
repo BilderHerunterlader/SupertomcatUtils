@@ -87,6 +87,11 @@ public abstract class ApplicationMain {
 	public static final String DATABASE_PATH = "DatabasePath";
 
 	/**
+	 * Settings Path Property Name
+	 */
+	public static final String SETTINGS_PATH = "SettingsPath";
+
+	/**
 	 * Application Short Name
 	 */
 	protected final String applicationShortName;

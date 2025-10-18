@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.bilderherunterlader</groupId>
 		<artifactId>supertomcatroot</artifactId>
-		<version>1.1.0</version>
+		<version>1.1.1</version>
 	</parent>
 	
 	<artifactId>supertomcatutils</artifactId>
@@ -27,6 +27,10 @@
 			<artifactId>commons-text</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-configuration2</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.xerial</groupId>
 			<artifactId>sqlite-jdbc</artifactId>
 		</dependency>
@@ -39,10 +43,6 @@
 			<artifactId>jna-platform</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-configuration2</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 			<version>6.2.11</version>
@@ -50,6 +50,10 @@
 		<dependency>
 			<groupId>org.freedesktop.tango</groupId>
 			<artifactId>tango-icon-theme</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.github.blackears</groupId>
+			<artifactId>svg-salamander</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
