@@ -1,14 +1,10 @@
 package ch.supertomcat.supertomcatutils.gui.dialog.about;
 
 import java.awt.BorderLayout;
-import java.awt.Desktop;
 import java.awt.Image;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -22,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import ch.supertomcat.supertomcatutils.application.ApplicationMain;
 import ch.supertomcat.supertomcatutils.application.ApplicationProperties;
+import ch.supertomcat.supertomcatutils.gui.FileExplorerUtil;
 
 /**
  * About Dialog
@@ -169,14 +166,6 @@ public class AboutDialog extends JDialog {
 	 * @param url URL
 	 */
 	protected void openURL(String url) {
-		if (Desktop.isDesktopSupported()) {
-			try {
-				Desktop.getDesktop().browse(new URI(url));
-			} catch (IOException | URISyntaxException e) {
-				logger.error("Could not open URL: {}", url, e);
-			}
-		} else {
-			logger.error("Could not open URL, because Desktop is not supported: {}", url);
-		}
+		FileExplorerUtil.openURL(url);
 	}
 }

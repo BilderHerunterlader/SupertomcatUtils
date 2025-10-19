@@ -73,4 +73,21 @@ public final class FileExplorerUtil {
 			logger.error("Could not open email, because Desktop is not supported: {}", emailAddress);
 		}
 	}
+
+	/**
+	 * Open URL
+	 * 
+	 * @param url URL
+	 */
+	public static void openURL(String url) {
+		if (Desktop.isDesktopSupported()) {
+			try {
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (IOException | URISyntaxException ex) {
+				logger.error("Could not open URL: {}", url, ex);
+			}
+		} else {
+			logger.error("Could not open URL, because Desktop is not supported: {}", url);
+		}
+	}
 }
