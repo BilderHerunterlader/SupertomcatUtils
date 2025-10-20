@@ -4,7 +4,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.text.JTextComponent;
@@ -18,9 +18,9 @@ import ch.supertomcat.supertomcatutils.gui.Localization;
 public final class JTextComponentCopyAndPaste {
 	private static final CopyAndPasteMouseAdapter mouseListener = new CopyAndPasteMouseAdapter();
 
-	private static final ImageIcon COPY_ICON = Icons.getTangoSVGIcon("actions/edit-copy.svg", 16);
-	private static final ImageIcon PASTE_ICON = Icons.getTangoSVGIcon("actions/edit-paste.svg", 16);
-	private static final ImageIcon DELETE_ICON = Icons.getTangoSVGIcon("actions/edit-delete.svg", 16);
+	private static final Icon COPY_ICON = Icons.getTangoSVGIcon("actions/edit-copy.svg", 16);
+	private static final Icon PASTE_ICON = Icons.getTangoSVGIcon("actions/edit-paste.svg", 16);
+	private static final Icon DELETE_ICON = Icons.getTangoSVGIcon("actions/edit-delete.svg", 16);
 
 	private JTextComponentCopyAndPaste() {
 	}
