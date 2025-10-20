@@ -1,6 +1,5 @@
 package ch.supertomcat.supertomcatutils.database.sqlite;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,8 +79,8 @@ public abstract class SQLiteDB<T> {
 			// Nothing to do
 		} catch (ClassNotFoundException | SQLException e) {
 			openDBFailed = true;
-			String databaseAbsolutePath = new File(databaseFile).getAbsolutePath();
-			String dbError = String.format(Localization.getString("ErrorDBNotOpen"), databaseAbsolutePath);
+			Path databaseAbsolutePath = Paths.get(databaseFile).toAbsolutePath();
+			String dbError = String.format(Localization.getString("ErrorDBNotOpen"), databaseAbsolutePath.toString());
 			JOptionPane.showMessageDialog(null, dbError + "\n" + e.getMessage(), "Database-Error", JOptionPane.ERROR_MESSAGE);
 			logger.error("Database could not be opened: {}", databaseAbsolutePath, e);
 		}
@@ -91,9 +90,13 @@ public abstract class SQLiteDB<T> {
 		}
 
 		if (defragDatabaseOnStart) {
-			File dbFile = new File(databaseFile);
-			if (dbFile.exists() && dbFile.length() >= defragMinFileSize) {
-				defragDatabase();
+			Path dbFile = Paths.get(databaseFile);
+			try {
+				if (Files.exists(dbFile) && Files.size(dbFile) >= defragMinFileSize) {
+					defragDatabase();
+				}
+			} catch (IOException e) {
+				logger.error("Could not check file size of database file", e);
 			}
 		}
 	}

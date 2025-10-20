@@ -1,10 +1,12 @@
 package ch.supertomcat.supertomcatutils.http.cookies.palemoon;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,8 +66,8 @@ public final class PaleMoonCookies {
 	 */
 	public static List<BrowserCookie> getCookiesFromPaleMoon(String domain, String[] hosts, String[] paths, String cookieFile) {
 		logger.debug("Pale Moon: Cookiefile: {}", cookieFile);
-		File file = new File(cookieFile);
-		if (file.exists() && file.getName().endsWith(".sqlite")) {
+		Path file = Paths.get(cookieFile);
+		if (Files.exists(file) && file.getFileName().toString().endsWith(".sqlite")) {
 			logger.debug("Pale Moon: Cookie file exist, opening database...");
 
 			/*
@@ -85,7 +87,7 @@ public final class PaleMoonCookies {
 			try {
 				return getCookiesFromPaleMoonSqlite(newCookieFile, domain, hosts, paths);
 			} catch (ClassNotFoundException | SQLException ex) {
-				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
+				logger.error("Could not read cookies from: {}", file, ex);
 				return new ArrayList<>();
 			}
 		}
@@ -127,13 +129,13 @@ public final class PaleMoonCookies {
 			paleMoonPath += "/.moonchild productions/pale moon/";
 		}
 
-		File folder = new File(paleMoonPath);
-		if (!folder.exists()) {
+		Path folder = Paths.get(paleMoonPath);
+		if (!Files.exists(folder)) {
 			return "";
 		}
 
-		File profilesIniFile = new File(paleMoonPath, "profiles.ini");
-		try (FileInputStream inputStream = new FileInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
+		Path profilesIniFile = Paths.get(paleMoonPath, "profiles.ini");
+		try (InputStream inputStream = Files.newInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
 			int defaultProfileIndex = -1;
 			List<String> paths = new ArrayList<>();
 
@@ -180,7 +182,7 @@ public final class PaleMoonCookies {
 				}
 			}
 		} catch (IOException | ConfigurationException e) {
-			logger.error("Could not read profiles.ini: {}", profilesIniFile.getAbsolutePath(), e);
+			logger.error("Could not read profiles.ini: {}", profilesIniFile, e);
 			return "";
 		}
 	}

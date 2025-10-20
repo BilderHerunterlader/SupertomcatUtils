@@ -1,11 +1,14 @@
 package ch.supertomcat.supertomcatutils.http.cookies.firefox;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -77,9 +80,9 @@ public final class FirefoxCookies {
 	public static List<BrowserCookie> getCookiesFromFirefox(String domain, String hosts[], String paths[], String cookieFile, String cookieFilev3) {
 		logger.debug("Firefox: Cookiefile: {}", cookieFile);
 		logger.debug("Firefox: Cookiefilev3: {}", cookieFilev3);
-		File file = new File(cookieFile);
-		File filev3 = new File(cookieFilev3);
-		if (filev3.exists() && filev3.getName().endsWith(".sqlite")) {
+		Path file = Paths.get(cookieFile);
+		Path filev3 = Paths.get(cookieFilev3);
+		if (Files.exists(filev3) && filev3.getFileName().toString().endsWith(".sqlite")) {
 			logger.debug("Firefox: v3: Cookie file exist, opening database...");
 
 			/*
@@ -99,15 +102,15 @@ public final class FirefoxCookies {
 			try {
 				return getCookiesFromFirefox3Sqlite(newCookieFilev3, domain, hosts, paths, firefoxDBLock, "Firefox: v3");
 			} catch (ClassNotFoundException | SQLException ex) {
-				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
+				logger.error("Could not read cookies from: {}", file, ex);
 				return new ArrayList<>();
 			}
-		} else if (file.exists() && file.getName().endsWith(".txt")) {
+		} else if (Files.exists(file) && file.getFileName().toString().endsWith(".txt")) {
 			logger.debug("Firefox: v2: Cookiefile exists, reading in the file...");
 			try {
 				return getCookiesFromFirefox2TextFile(cookieFile, domain, hosts, paths, "Firefox: v2");
 			} catch (IOException ex) {
-				logger.error("Could not read cookies from: {}", file.getAbsolutePath(), ex);
+				logger.error("Could not read cookies from: {}", file, ex);
 				return new ArrayList<>();
 			}
 		}
@@ -304,13 +307,13 @@ public final class FirefoxCookies {
 			firefoxPath += "/.mozilla/firefox/";
 		}
 
-		File folder = new File(firefoxPath);
-		if (!folder.exists()) {
+		Path folder = Paths.get(firefoxPath);
+		if (!Files.exists(folder)) {
 			return "";
 		}
 
-		File profilesIniFile = new File(firefoxPath, "profiles.ini");
-		try (FileInputStream inputStream = new FileInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
+		Path profilesIniFile = Paths.get(firefoxPath, "profiles.ini");
+		try (InputStream inputStream = Files.newInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
 			int defaultProfileIndex = -1;
 			List<String> paths = new ArrayList<>();
 
@@ -357,7 +360,7 @@ public final class FirefoxCookies {
 				}
 			}
 		} catch (IOException | ConfigurationException e) {
-			logger.error("Could not read profiles.ini: {}", profilesIniFile.getAbsolutePath(), e);
+			logger.error("Could not read profiles.ini: {}", profilesIniFile, e);
 			return "";
 		}
 	}

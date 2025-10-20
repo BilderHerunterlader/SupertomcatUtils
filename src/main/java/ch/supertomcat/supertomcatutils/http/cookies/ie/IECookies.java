@@ -1,15 +1,18 @@
 package ch.supertomcat.supertomcatutils.http.cookies.ie;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,38 +51,33 @@ public final class IECookies {
 		}
 
 		try {
-			File folder = new File(System.getProperty("user.home"), "Cookies");
-			if (folder.exists() && folder.isDirectory()) {
-				FileFilter filter = new FileFilter() {
-					@Override
-					public boolean accept(File pathname) {
-						if (pathname.isFile()) {
-							String cookieDomain = COOKIE_DOMAIN_PATTERN.matcher(pathname.getName()).replaceAll("$1");
+			Path folder = Paths.get(System.getProperty("user.home"), "Cookies");
+			if (Files.exists(folder) && Files.isDirectory(folder)) {
+				Predicate<Path> filter = x -> {
+					String cookieDomain = COOKIE_DOMAIN_PATTERN.matcher(x.getFileName().toString()).replaceAll("$1");
 
-							boolean matchedDomain = cookieDomain.equals(HTTPUtil.getTLDName(domain));
-							if (!matchedDomain) {
-								for (int i = 0; i < hosts.length; i++) {
-									matchedDomain = cookieDomain.equals(HTTPUtil.getTLDName(hosts[i].substring(1)));
-									if (matchedDomain) {
-										break;
-									}
-								}
+					boolean matchedDomain = cookieDomain.equals(HTTPUtil.getTLDName(domain));
+					if (!matchedDomain) {
+						for (int i = 0; i < hosts.length; i++) {
+							matchedDomain = cookieDomain.equals(HTTPUtil.getTLDName(hosts[i].substring(1)));
+							if (matchedDomain) {
+								break;
 							}
-
-							return matchedDomain;
 						}
-						return false;
 					}
+
+					return matchedDomain;
 				};
 
 				List<BrowserCookie> allCookies = new ArrayList<>();
 
-				File[] files = folder.listFiles(filter);
-				if (files != null) {
-					for (File file : files) {
+				try (Stream<Path> stream = Files.list(folder)) {
+					stream.filter(Files::isRegularFile).filter(filter).forEach(file -> {
 						List<BrowserCookie> cookies = getCookiesFromIEFile(file, domain);
 						allCookies.addAll(cookies);
-					}
+					});
+				} catch (IOException e) {
+					logger.error("Could not read cookie files from: {}", folder, e);
 				}
 
 				return allCookies;
@@ -98,8 +96,8 @@ public final class IECookies {
 	 * @param domain Domain
 	 * @return Cookies
 	 */
-	private static List<BrowserCookie> getCookiesFromIEFile(File f, String domain) {
-		try (FileInputStream in = new FileInputStream(f); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
+	private static List<BrowserCookie> getCookiesFromIEFile(Path f, String domain) {
+		try (InputStream in = Files.newInputStream(f); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
 			List<BrowserCookie> cookies = new ArrayList<>();
 
 			BrowserCookie cookie = new BrowserCookie();
@@ -164,7 +162,7 @@ public final class IECookies {
 
 			return cookies;
 		} catch (IOException e) {
-			logger.error("Could not read cookies from IE: {}", f.getAbsolutePath(), e);
+			logger.error("Could not read cookies from IE: {}", f, e);
 			return new ArrayList<>();
 		}
 	}

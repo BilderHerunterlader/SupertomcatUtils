@@ -1,6 +1,7 @@
 package ch.supertomcat.supertomcatutils.http.cookies.opera.oldformat;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +107,6 @@ public final class OperaCookies {
 	}
 
 	private static boolean checkFileExists(String strFile) {
-		return (new File(strFile)).exists();
+		return Files.exists(Paths.get(strFile));
 	}
 }

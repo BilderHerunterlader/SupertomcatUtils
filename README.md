@@ -25,7 +25,7 @@ This product bundles spring-web, which is available under a "Apache-2.0" License
 
 This product bundles tango-icon-theme, which is in the public domain. For details, see http://tango.freedesktop.org
 
-This product bundles svg-salamander, which is available under a "BSD 2-clause" License. For details, see https://github.com/blackears/svgSalamander
+This product bundles jsvg, which is available under a "MIT License" License. For details, see https://github.com/weisJ/jsvg
 
 This product bundles jakarta.xml.bind-api, which is available under a "Eclipse Distribution License 1.0" License. For details, see https://jakarta.ee/specifications/xml-binding/
 
