@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,7 +96,7 @@ public final class IECookies {
 	 * @return Cookies
 	 */
 	private static List<BrowserCookie> getCookiesFromIEFile(Path f, String domain) {
-		try (InputStream in = Files.newInputStream(f); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
+		try (InputStream in = Files.newInputStream(f); BufferedReader br = new BufferedReader(new InputStreamReader(in, System.getProperty("native.encoding")))) {
 			List<BrowserCookie> cookies = new ArrayList<>();
 
 			BrowserCookie cookie = new BrowserCookie();

@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -129,7 +128,7 @@ public final class FirefoxCookies {
 	 * @throws IOException
 	 */
 	public static List<BrowserCookie> getCookiesFromFirefox2TextFile(String cookieFile, final String domain, String[] hosts, String[] paths, String browserName) throws IOException {
-		try (FileInputStream in = new FileInputStream(cookieFile); BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.defaultCharset()))) {
+		try (FileInputStream in = new FileInputStream(cookieFile); BufferedReader br = new BufferedReader(new InputStreamReader(in, System.getProperty("native.encoding")))) {
 			List<BrowserCookie> cookies = new ArrayList<>();
 
 			String row = null;
@@ -313,7 +312,7 @@ public final class FirefoxCookies {
 		}
 
 		Path profilesIniFile = Paths.get(firefoxPath, "profiles.ini");
-		try (InputStream inputStream = Files.newInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
+		try (InputStream inputStream = Files.newInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, System.getProperty("native.encoding"))) {
 			int defaultProfileIndex = -1;
 			List<String> paths = new ArrayList<>();
 

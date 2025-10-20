@@ -3,7 +3,6 @@ package ch.supertomcat.supertomcatutils.http.cookies.palemoon;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -135,7 +134,7 @@ public final class PaleMoonCookies {
 		}
 
 		Path profilesIniFile = Paths.get(paleMoonPath, "profiles.ini");
-		try (InputStream inputStream = Files.newInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, Charset.defaultCharset())) {
+		try (InputStream inputStream = Files.newInputStream(profilesIniFile); InputStreamReader reader = new InputStreamReader(inputStream, System.getProperty("native.encoding"))) {
 			int defaultProfileIndex = -1;
 			List<String> paths = new ArrayList<>();
 
