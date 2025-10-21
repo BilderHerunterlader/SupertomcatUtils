@@ -76,7 +76,7 @@ public class JSVGIcon extends SVGIconBase {
 
 		double scaleWidth = width / svgWidth;
 		double scaleHeight = height / svgHeight;
-		// Use larger scale
+		// Use smaller scale
 		double scale = Math.min(scaleWidth, scaleHeight);
 
 		int svgWidthScaled = Math.clamp((int)Math.round(svgWidth * scale), 0, width);
