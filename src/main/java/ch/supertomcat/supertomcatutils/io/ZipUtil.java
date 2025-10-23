@@ -49,6 +49,13 @@ public final class ZipUtil {
 					logger.info("Create directory: {}", outputPath);
 					Files.createDirectories(outputPath);
 				} else {
+					/*
+					 * Some zip files contain only the file entries and no directory entries, for this case we need create directory also here
+					 */
+					Path folder = outputPath.toAbsolutePath().getParent();
+					logger.info("Create directory: {}", folder);
+					Files.createDirectories(folder);
+
 					logger.info("Extract file '{}' to: {}", entryName, outputPath);
 					try (OutputStream out = Files.newOutputStream(outputPath)) {
 						int read;
