@@ -1,0 +1,55 @@
+package ch.supertomcat.supertomcatutils.process.macos;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.supertomcat.supertomcatutils.process.EvelatedProcessExecutor;
+
+/**
+ * Evelated Process Executor for MacOS
+ */
+public class MacOSEvelatedProcessExecutor implements EvelatedProcessExecutor {
+	/**
+	 * Logger
+	 */
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Override
+	public boolean startProcess(String workingDirectory, String... commands) {
+		return startProcess(workingDirectory, Arrays.asList(commands));
+	}
+
+	@Override
+	public boolean startProcess(String workingDirectory, List<String> commands) {
+		if (commands.isEmpty()) {
+			throw new IllegalArgumentException("No command provided");
+		}
+
+		String scriptCommand = commands.stream().collect(Collectors.joining(" "));
+
+		List<String> combinedCommands = new ArrayList<>();
+		combinedCommands.add("osascript");
+		combinedCommands.add("-e");
+		combinedCommands.add("do shell script \"" + scriptCommand + "\" with administrator privileges");
+		combinedCommands.addAll(commands);
+		ProcessBuilder processBuilder = new ProcessBuilder(combinedCommands);
+		processBuilder.inheritIO();
+		if (workingDirectory != null) {
+			processBuilder.directory(new File(workingDirectory));
+		}
+		try {
+			processBuilder.start();
+			return true;
+		} catch (IOException e) {
+			logger.error("Starting process failed with exit code", e);
+			return false;
+		}
+	}
+}
