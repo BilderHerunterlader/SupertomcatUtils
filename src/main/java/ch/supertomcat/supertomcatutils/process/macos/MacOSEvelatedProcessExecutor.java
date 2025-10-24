@@ -39,10 +39,9 @@ public class MacOSEvelatedProcessExecutor implements EvelatedProcessExecutor {
 		combinedCommands.add("-e");
 		combinedCommands.add("do shell script \"" + scriptCommand + "\" with administrator privileges");
 		combinedCommands.addAll(commands);
-		ProcessBuilder processBuilder = new ProcessBuilder(combinedCommands);
-		processBuilder.inheritIO();
+		ProcessBuilder processBuilder = new ProcessBuilder(combinedCommands).inheritIO();
 		if (workingDirectory != null) {
-			processBuilder.directory(new File(workingDirectory));
+			processBuilder = processBuilder.directory(new File(workingDirectory));
 		}
 		try {
 			processBuilder.start();

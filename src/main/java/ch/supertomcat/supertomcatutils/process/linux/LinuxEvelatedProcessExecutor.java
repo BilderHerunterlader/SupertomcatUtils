@@ -34,10 +34,9 @@ public class LinuxEvelatedProcessExecutor implements EvelatedProcessExecutor {
 		List<String> combinedCommands = new ArrayList<>();
 		combinedCommands.add("pkexec");
 		combinedCommands.addAll(commands);
-		ProcessBuilder processBuilder = new ProcessBuilder(combinedCommands);
-		processBuilder.inheritIO();
+		ProcessBuilder processBuilder = new ProcessBuilder(combinedCommands).inheritIO();
 		if (workingDirectory != null) {
-			processBuilder.directory(new File(workingDirectory));
+			processBuilder = processBuilder.directory(new File(workingDirectory));
 		}
 		try {
 			processBuilder.start();
