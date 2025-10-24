@@ -25,6 +25,17 @@ public class ProgressWindow extends JFrame implements IProgressObserver {
 	 * @param parent Parent Window or null
 	 */
 	public ProgressWindow(String title, Window parent) {
+		this(title, parent, true);
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param title Window Title
+	 * @param parent Parent Window or null
+	 * @param display True if the window should be displayed ({@link JFrame#setVisible(boolean)}, false otherwise
+	 */
+	public ProgressWindow(String title, Window parent, boolean display) {
 		super(title);
 		lblTitle.setText(title);
 		add(lblTitle, BorderLayout.NORTH);
@@ -36,7 +47,9 @@ public class ProgressWindow extends JFrame implements IProgressObserver {
 		pack();
 		setLocationRelativeTo(parent);
 
-		setVisible(true);
+		if (display) {
+			setVisible(true);
+		}
 	}
 
 	@Override
