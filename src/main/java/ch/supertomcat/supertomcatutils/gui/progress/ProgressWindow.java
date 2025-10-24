@@ -1,9 +1,11 @@
 package ch.supertomcat.supertomcatutils.gui.progress;
 
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Window;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
 /**
@@ -11,6 +13,8 @@ import javax.swing.JProgressBar;
  */
 public class ProgressWindow extends JFrame implements IProgressObserver {
 	private static final long serialVersionUID = 1L;
+
+	private JLabel lblTitle = new JLabel();
 
 	private JProgressBar pg = new JProgressBar();
 
@@ -22,14 +26,17 @@ public class ProgressWindow extends JFrame implements IProgressObserver {
 	 */
 	public ProgressWindow(String title, Window parent) {
 		super(title);
+		lblTitle.setText(title);
+		add(lblTitle, BorderLayout.NORTH);
+
 		pg.setStringPainted(true);
 		pg.setVisible(true);
-		this.add(pg);
+		add(pg, BorderLayout.CENTER);
 
 		pack();
 		setLocationRelativeTo(parent);
 
-		this.setVisible(true);
+		setVisible(true);
 	}
 
 	@Override

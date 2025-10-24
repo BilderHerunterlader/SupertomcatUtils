@@ -319,30 +319,7 @@ public abstract class ApplicationMain {
 	 * @return Java Executable Path or null
 	 */
 	protected String getJavaExePath() {
-		String jreBinPath = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR;
-
-		String jreJavaw = jreBinPath + "javaw";
-		String jreJava = jreBinPath + "java";
-
-		Path fJreJavaw;
-		Path fJreJava;
-		if (Platform.isWindows()) {
-			fJreJavaw = Paths.get(jreJavaw + ".exe");
-			fJreJava = Paths.get(jreJava + ".exe");
-		} else {
-			fJreJavaw = Paths.get(jreJavaw);
-			fJreJava = Paths.get(jreJava);
-		}
-
-		if (Files.exists(fJreJavaw)) {
-			return jreJavaw;
-		}
-
-		if (Files.exists(fJreJava)) {
-			return jreJava;
-		}
-
-		return null;
+		return ApplicationUtil.getJavaExePath();
 	}
 
 	/**

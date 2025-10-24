@@ -26,7 +26,10 @@ import javax.swing.JFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.Platform;
+
 import ch.supertomcat.supertomcatutils.exceptionhandler.SLF4JUncaughtExceptionHandler;
+import ch.supertomcat.supertomcatutils.io.FileUtil;
 
 /**
  * Utility class to initialize an application
@@ -136,6 +139,36 @@ public final class ApplicationUtil {
 		// Logging is not intialized at this time, so we write the warning to sysout
 		System.err.println("Could not detect Jar-Filename");
 		return "";
+	}
+
+	/**
+	 * @return Java Executable Path or null
+	 */
+	public static String getJavaExePath() {
+		String jreBinPath = System.getProperty("java.home") + FileUtil.FILE_SEPERATOR + "bin" + FileUtil.FILE_SEPERATOR;
+
+		String jreJavaw = jreBinPath + "javaw";
+		String jreJava = jreBinPath + "java";
+
+		Path fJreJavaw;
+		Path fJreJava;
+		if (Platform.isWindows()) {
+			fJreJavaw = Paths.get(jreJavaw + ".exe");
+			fJreJava = Paths.get(jreJava + ".exe");
+		} else {
+			fJreJavaw = Paths.get(jreJavaw);
+			fJreJava = Paths.get(jreJava);
+		}
+
+		if (Files.exists(fJreJavaw)) {
+			return jreJavaw;
+		}
+
+		if (Files.exists(fJreJava)) {
+			return jreJava;
+		}
+
+		return null;
 	}
 
 	/**
