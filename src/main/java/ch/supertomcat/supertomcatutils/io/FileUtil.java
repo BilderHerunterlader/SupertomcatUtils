@@ -91,23 +91,23 @@ public final class FileUtil {
 	/**
 	 * Pattern to trim spaces and points from the start of a string
 	 */
-	private static Pattern lTrimPatternPath = Pattern.compile("^[\\s\\.]+");
+	private static final Pattern LEFT_TRIM_PATH_PATTERN = Pattern.compile("^[\\s\\.]+");
 
 	/**
 	 * Pattern to trim spaces and points from the end of a string
 	 */
-	private static Pattern rTrimPatternPath = Pattern.compile("[\\s\\.]+$");
+	private static final Pattern RIGHT_TRIM_PATH_PATTERN = Pattern.compile("[\\s\\.]+$");
 
 	/**
 	 * Pattern for searching number patterns in filenames
 	 */
-	private static Pattern patternZeroFilledNumber = Pattern.compile("#+");
+	private static final Pattern ZERO_FILLED_NUMBER_PATTERN = Pattern.compile("#+");
 
-	private static FilenameFilter filenameAsciiOnlyFilter = new FilenameAsciiOnlyFilter();
+	private static final FilenameFilter FILENAME_ASCII_ONLY_FILTER = new FilenameAsciiOnlyFilter();
 
-	private static FilenameFilter filenameAsciiUmlautFilter = new FilenameAsciiUmlautFilter();
+	private static final FilenameFilter FILENAME_ASCII_UMLAUT_FILTER = new FilenameAsciiUmlautFilter();
 
-	private static FilenameFilter filenameAllFilter = new FilenameFilter();
+	private static final FilenameFilter FILENAME_ALL_FILTER = new FilenameFilter();
 
 	/**
 	 * Constructor
@@ -300,8 +300,8 @@ public final class FileUtil {
 	 * @param str Path
 	 * @return Path
 	 */
-	public static synchronized String lTrim(String str) {
-		return lTrimPatternPath.matcher(str).replaceAll("");
+	public static String lTrim(String str) {
+		return LEFT_TRIM_PATH_PATTERN.matcher(str).replaceAll("");
 	}
 
 	/**
@@ -310,8 +310,8 @@ public final class FileUtil {
 	 * @param str Path
 	 * @return Path
 	 */
-	public static synchronized String rTrim(String str) {
-		return rTrimPatternPath.matcher(str).replaceAll("");
+	public static String rTrim(String str) {
+		return RIGHT_TRIM_PATH_PATTERN.matcher(str).replaceAll("");
 	}
 
 	/**
@@ -353,7 +353,7 @@ public final class FileUtil {
 		}
 
 		StringBuffer sb = new StringBuffer();
-		Matcher matcher = patternZeroFilledNumber.matcher(filename);
+		Matcher matcher = ZERO_FILLED_NUMBER_PATTERN.matcher(filename);
 		while (matcher.find()) {
 			String replacement = getZeroFilledNumber(number, matcher.group().length());
 			matcher.appendReplacement(sb, replacement);
@@ -508,10 +508,10 @@ public final class FileUtil {
 	 */
 	private static String filterPath(String str, boolean noPath, int mode) {
 		FilenameFilter filter = switch (mode) {
-			case FILENAME_ASCII_ONLY -> filenameAsciiOnlyFilter;
-			case FILENAME_ASCII_UMLAUT -> filenameAsciiUmlautFilter;
-			case FILENAME_ALL -> filenameAllFilter;
-			default -> filenameAllFilter;
+			case FILENAME_ASCII_ONLY -> FILENAME_ASCII_ONLY_FILTER;
+			case FILENAME_ASCII_UMLAUT -> FILENAME_ASCII_UMLAUT_FILTER;
+			case FILENAME_ALL -> FILENAME_ALL_FILTER;
+			default -> FILENAME_ALL_FILTER;
 		};
 		return filter.filter(str, noPath);
 	}

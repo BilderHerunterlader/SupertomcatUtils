@@ -11,6 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.swing.JOptionPane;
 
@@ -49,6 +52,21 @@ public abstract class SQLiteDB<T> {
 	 * Table Name
 	 */
 	protected final String tableName;
+
+	/**
+	 * Lock
+	 */
+	protected final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+	/**
+	 * Read Lock
+	 */
+	protected final Lock readLock = readWriteLock.readLock();
+
+	/**
+	 * Write Lock
+	 */
+	protected final Lock writeLock = readWriteLock.writeLock();
 
 	/**
 	 * Constructor
@@ -151,7 +169,7 @@ public abstract class SQLiteDB<T> {
 	 * 
 	 * @return True if successful, false otherwise
 	 */
-	private synchronized boolean defragDatabase() {
+	private boolean defragDatabase() {
 		try (Connection con = getDatabaseConnection()) {
 			try (PreparedStatement statement = con.prepareStatement(VACUUM_SQL_COMMAND)) {
 				statement.executeUpdate();
