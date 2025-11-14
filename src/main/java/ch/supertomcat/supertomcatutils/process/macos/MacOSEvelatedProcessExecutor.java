@@ -44,9 +44,10 @@ public class MacOSEvelatedProcessExecutor implements EvelatedProcessExecutor {
 			processBuilder = processBuilder.directory(new File(workingDirectory));
 		}
 		try {
-			processBuilder.start();
-			return true;
-		} catch (IOException e) {
+			Process process = processBuilder.start();
+			int exitCode = process.waitFor();
+			return exitCode == 0;
+		} catch (IOException | InterruptedException e) {
 			logger.error("Starting process failed with exit code", e);
 			return false;
 		}
