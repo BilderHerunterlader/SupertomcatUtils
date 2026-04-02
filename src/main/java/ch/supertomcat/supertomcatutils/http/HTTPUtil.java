@@ -110,7 +110,7 @@ public final class HTTPUtil {
 			// Use this URI constructor with mutliple parts of the URL, because the normal constructor or toURI will not do any encoding
 			URI uri = new URI(parsedURL.getProtocol(), parsedURL.getUserInfo(), parsedURL.getHost(), parsedURL.getPort(), parsedURL.getPath(), parsedURL.getQuery(), parsedURL.getRef());
 			encodedURL = uri.toASCIIString();
-		} catch (MalformedURLException | URISyntaxException e) {
+		} catch (Exception e) {
 			logger.error("Could not encode URL, because it is malformed: {}", url, e);
 		}
 
@@ -138,7 +138,7 @@ public final class HTTPUtil {
 	public static String decodeURL(String url) {
 		try {
 			return decodeURL(parseURL(url));
-		} catch (MalformedURLException | URISyntaxException e) {
+		} catch (Exception e) {
 			logger.error("Could not decode URL, because it is malformed: {}", url, e);
 			return url;
 		}
@@ -230,7 +230,7 @@ public final class HTTPUtil {
 		try {
 			URL parsedURL = parseURL(url);
 			return parsedURL.getHost();
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			logger.debug("Could not get domain from URL: {}", url, e);
 			return "";
 		}
@@ -290,7 +290,7 @@ public final class HTTPUtil {
 			} else {
 				return defaultValue;
 			}
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			logger.debug("Could not get filename from URL: {}", url, e);
 			return defaultValue;
 		}
